@@ -1,7 +1,8 @@
 import re
 import string
 import random
-from flask import Flask
+from flask import Flask, request, redirect, jsonify
+
 
 app = Flask(__name__)
 url_data = {}
@@ -28,8 +29,21 @@ def is_valid_url(url):
     return re.match(regex, url) is not None
 
 def generate_unique_id():
+
+    """
+    Generates a unique six-character identifier using a combination of ASCII letters and digits.
+
+    Returns:
+        str: A six-character unique identifier.
+
+    Raises:
+        None
+    """
+
     characters = string.ascii_letters + string.digits
     while True:
         unique_id = ''.join(random.choices(characters, k=6))
         if unique_id not in url_data:
             return unique_id
+        
+
