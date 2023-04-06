@@ -7,13 +7,19 @@ from flask import jsonify, redirect
 
 class TestApp(unittest.TestCase):
 
+    def setUp(self):
+        self.app = app.test_client()
+
     def test_is_valid_url(self):
         self.assertTrue(is_valid_url('https://www.google.com'))
+        self.assertTrue(is_valid_url('https://www.facebook.nl'))
         self.assertTrue(is_valid_url('http://localhost:5000/'))
         self.assertTrue(is_valid_url('http://127.0.0.1:8000'))
         self.assertFalse(is_valid_url('google.com'))
         self.assertFalse(is_valid_url('ftp://example.com'))
         self.assertFalse(is_valid_url('http://example.com/path with spaces'))
+        self.assertFalse(is_valid_url('http://examplecom/'))
+        
 
     def test_generate_unique_id(self):
         # Create a set to store generated IDs and check for duplicates
