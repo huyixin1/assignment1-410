@@ -47,13 +47,15 @@ class URLShortenerApp:
 
         Returns:
             response (redirect): A redirect response to the original URL if found,
-                                 a JSON response with an error message otherwise.
+                                a JSON response with an error message otherwise.
         """
+        print(f"Attempting to redirect ID: {id}")
         if id in self.url_data:
-            print(f"ID: {id}, URL: {self.url_data[id]}")
-            return redirect(self.url_data[id])
+            print(f"Redirecting to: {self.url_data[id]['url']}")
+            return redirect(self.url_data[id]['url'])
         else:
-            return jsonify({'error': 'Not Found'}), 404
+            print(f"URL not found for ID: {id}")
+            return jsonify({"error": "URL not found"}), 404
 
     def serve_index(self):
         """
@@ -63,8 +65,8 @@ class URLShortenerApp:
             response (json): A JSON response containing a dictionary of all URLs.
         """
         short_urls = [
-            {"id": key, "url": f"http://localhost:5000/{key}", "created_at": self.url_data[key]["created_at"]}
-            for key in self.url_data
+        {"id": key, "url": f"http://localhost:5000/{key}", "created_at": self.url_data[key]["created_at"], "original_url": self.url_data[key]["url"]}
+        for key in self.url_data
         ]
         short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)  # Add this line to sort the list
         return render_template('index.html', short_urls=short_urls)
