@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect
 import re
 import string
 import random
+from datetime import datetime
 
 class URLShortenerApp:
 
@@ -49,12 +50,23 @@ class URLShortenerApp:
                                  a JSON response with an error message otherwise.
         """
         if id in self.url_data:
+            print(f"ID: {id}, URL: {self.url_data[id]}")
             return redirect(self.url_data[id])
         else:
             return jsonify({'error': 'Not Found'}), 404
 
     def serve_index(self):
-        return render_template('index.html')
+        """
+        Retrieve all stored URLs.
+
+        Returns:
+            response (json): A JSON response containing a dictionary of all URLs.
+        """
+        short_urls = [
+            {"id": key, "url": f"http://localhost:5000/{key}", "created_at": self.url_data[key]["created_at"]}
+            for key in self.url_data
+        ]
+        return render_template('index.html', short_urls=short_urls)
 
     def is_valid_url(self, url):
 
@@ -131,7 +143,7 @@ class URLShortenerApp:
         
         if id in self.url_data:
             del self.url_data[id]
-            return jsonify({'message': 'Deleted'}), 204
+            return jsonify({'message': 'Deleted'}), 200
         else:
             return jsonify({'error': 'Not Found'}), 404
 
@@ -145,29 +157,37 @@ class URLShortenerApp:
         """
 
         return jsonify(list(self.url_data.keys())), 200
+    
+    def get_all_urls(self):
+
+        """
+        Retrieve all stored URLs along with their identifiers.
+
+        Returns:
+            response (json): A JSON response containing a dictionary of URL identifiers and their corresponding URLs.
+        """
+
+        return jsonify(self.url_data), 200
 
     def create_short_url(self):
-
         """
         Create a short URL for the given long URL.
 
         Returns:
             response (json): A JSON response containing the short URL identifier or an error message.
         """
-
         data = request.get_json()
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
         url = data.get('url')
         if url is not None and self.is_valid_url(url):
             unique_id = self.generate_unique_id()
-            self.url_data[unique_id] = url
+            self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             base_url = "http://localhost:5000/"
             short_url = base_url + unique_id
             return jsonify({'short_url': short_url}), 201
         else:
             return jsonify({'error': 'Invalid URL'}), 400
-
 
     def unsupported_delete(self):
 
