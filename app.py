@@ -66,6 +66,7 @@ class URLShortenerApp:
             {"id": key, "url": f"http://localhost:5000/{key}", "created_at": self.url_data[key]["created_at"]}
             for key in self.url_data
         ]
+        short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)  # Add this line to sort the list
         return render_template('index.html', short_urls=short_urls)
 
     def is_valid_url(self, url):
@@ -180,14 +181,12 @@ class URLShortenerApp:
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
         url = data.get('url')
-        if url is not None and self.is_valid_url(url):
-            unique_id = self.generate_unique_id()
-            self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-            base_url = "http://localhost:5000/"
-            short_url = base_url + unique_id
-            return jsonify({'short_url': short_url}), 201
-        else:
+        if url is None or not self.is_valid_url(url):
             return jsonify({'error': 'Invalid URL'}), 400
+        unique_id = self.generate_unique_id()
+        self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+        short_url = f"http://localhost:5000/{unique_id}"
+        return jsonify({'short_url': short_url}), 201
 
     def unsupported_delete(self):
 
