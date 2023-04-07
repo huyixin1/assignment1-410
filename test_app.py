@@ -1,7 +1,7 @@
 import unittest
 import json
 from flask import json as flask_json
-from app import URLShortenerApp  # Assuming your original code is in a file named app.py
+from app import URLShortenerApp 
 
 class TestURLShortenerApp(unittest.TestCase):
 
@@ -43,7 +43,8 @@ class TestURLShortenerApp(unittest.TestCase):
         response = self.app.post('/', data=flask_json.dumps({'url': 'https://www.example.com'}), content_type='application/json')
         self.assertEqual(response.status_code, 201)
         response_data = json.loads(response.data)
-        self.assertIn('id', response_data)
+        self.assertIn('short_url', response_data)
+
 
     def test_invalid_url(self):
         """

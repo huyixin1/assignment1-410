@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, redirect
 import re
 import string
 import random
@@ -29,11 +29,32 @@ class URLShortenerApp:
         Set up the route handlers for the Flask application.
         """
 
+        self.app.add_url_rule('/<string:id>', 'redirect_url', self.redirect_url, methods=['GET'])
+        self.app.add_url_rule('/', 'serve_index', self.serve_index, methods=['GET'])
         self.app.add_url_rule('/<string:id>', 'update_url', self.update_url, methods=['PUT'])
         self.app.add_url_rule('/<string:id>', 'delete_url', self.delete_url, methods=['DELETE'])
-        self.app.add_url_rule('/', 'get_all_keys', self.get_all_keys, methods=['GET'])
+        self.app.add_url_rule('/keys', 'get_all_keys', self.get_all_keys, methods=['GET'])
         self.app.add_url_rule('/', 'create_short_url', self.create_short_url, methods=['POST'])
         self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
+
+    def redirect_url(self, id):
+        """
+        Redirect the user to the original URL associated with the given ID.
+
+        Args:
+            id (str): The unique identifier of the shortened URL.
+
+        Returns:
+            response (redirect): A redirect response to the original URL if found,
+                                 a JSON response with an error message otherwise.
+        """
+        if id in self.url_data:
+            return redirect(self.url_data[id])
+        else:
+            return jsonify({'error': 'Not Found'}), 404
+
+    def serve_index(self):
+        return render_template('index.html')
 
     def is_valid_url(self, url):
 
@@ -141,9 +162,12 @@ class URLShortenerApp:
         if url is not None and self.is_valid_url(url):
             unique_id = self.generate_unique_id()
             self.url_data[unique_id] = url
-            return jsonify({'id': unique_id}), 201
+            base_url = "http://localhost:5000/"
+            short_url = base_url + unique_id
+            return jsonify({'short_url': short_url}), 201
         else:
             return jsonify({'error': 'Invalid URL'}), 400
+
 
     def unsupported_delete(self):
 
@@ -166,7 +190,8 @@ class URLShortenerApp:
             **kwargs: Arbitrary keyword arguments.
         """
 
-        self.app.run(*args, **kwargs)
+        self.app.run(debug=True, *args, **kwargs)
 
 if __name__ == '__main__':
     url_shortener_app = URLShortenerApp()
+    url_shortener_app.run()
