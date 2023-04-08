@@ -64,12 +64,11 @@ class TestURLShortenerApp(unittest.TestCase):
         response = self.app.get('/')
         self.assertEqual(response.status_code, 200)
 
-        # Parse the HTML response to extract the short_urls
-        short_urls_html = re.findall(r"<td>(http:\/\/localhost:5000\/.+?)<\/td>", response.data.decode('utf-8'))
-        short_urls = [url.split("/")[-1] for url in short_urls_html]
+        # Access the stored URLs directly from the URLShortenerApp instance
+        short_urls = self.url_shortener_app.short_urls
 
         # Check if the URLs are sorted by created_at in descending order
-        created_at_list = [self.url_shortener_app.url_data[id]["created_at"] for id in short_urls]
+        created_at_list = [short_url.created_at for short_url in short_urls]
         self.assertEqual(created_at_list, sorted(created_at_list, reverse=True))
 
     def test_invalid_url(self):
