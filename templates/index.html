@@ -19,10 +19,13 @@
     <ul>
         {% for short_url in short_urls %}
         <li>
-            <a href="{{ short_url.url }}">{{ short_url.url }}</a> 
-            (Created at: {{ short_url.created_at }}, Original URL: {{ short_url.original_url }})
+            <a href="{{ short_url.url }}">{{ short_url.url }}</a>
+            <ul>
+                <li>Created at: {{ short_url.created_at }}</li>
+                <li>Original URL: {{ short_url.original_url }}</li>
+            </ul>
         </li>
-    {% endfor %}
+        {% endfor %}
     </ul>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -38,6 +41,7 @@
                 data: JSON.stringify(formData),
                 success: function(response) {
                     $("#result").html("Shortened URL: <a href='" + response.short_url + "'>" + response.short_url + "</a>");
+                    $("#url").val('');
                     location.reload();
                 },
                 error: function(response) {
