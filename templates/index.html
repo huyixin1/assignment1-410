@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+</head>
+
+<body>
+    <h1>URL Shortener</h1>
+    <form id="url-form">
+        <label for="url">Enter a URL:</label>
+        <input type="text" id="url" name="url" required>
+        <button type="submit">Shorten</button>
+    </form>
+    <div id="result"></div>
+    <h2>Shortened URLs</h2>
+    <ul>
+        {% for short_url in short_urls %}
+        <li>
+            <a href="{{ short_url.url }}">{{ short_url.url }}</a> 
+            (Created at: {{ short_url.created_at }}, Original URL: {{ short_url.original_url }})
+        </li>
+    {% endfor %}
+    </ul>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $("#url-form").submit(function(event) {
+            event.preventDefault();
+            const formData = {
+                url: $("#url").val()
+            };
+            $.ajax({
+                type: "POST",
+                url: "/",
+                contentType: "application/json",
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    $("#result").html("Shortened URL: <a href='" + response.short_url + "'>" + response.short_url + "</a>");
+                    location.reload();
+                },
+                error: function(response) {
+                    $("#result").text("Error: " + response.responseJSON.error);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
