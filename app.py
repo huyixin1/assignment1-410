@@ -56,8 +56,13 @@ class URLShortenerApp:
         Returns:
             response (json): A JSON response containing a dictionary of all URLs.
         """
-        short_urls = [
-            {"id": key, "url": f"{BASE_URL}/{key}", "created_at": self.url_data[key]["created_at"], "original_url": self.url_data[key]["url"]}
+        short_urls = [{
+            "id": key, 
+            "url": f"{BASE_URL}/{key}", 
+            "created_at": self.url_data[key]["created_at"], 
+            "original_url": self.url_data[key]["url"],
+            "generated_uri": key
+            }
             for key in self.url_data
         ]
         short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
@@ -155,13 +160,16 @@ class URLShortenerApp:
         ):
             # Return the existing short URL if found
             short_url = f"{BASE_URL}/{existing_id}"
+            generated_uri = existing_id
         else:
             # Create a new short URL if the URL does not exist
             unique_id = self.generate_unique_id()
             self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             short_url = f"{BASE_URL}/{unique_id}"
+            generated_uri = unique_id
 
-        return jsonify({'short_url': short_url}), 201
+        return jsonify({'short_url': short_url, 'generated_uri': generated_uri}), 201
+
 
     def unsupported_delete(self):
         """
