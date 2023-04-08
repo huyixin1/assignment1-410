@@ -64,6 +64,7 @@ class URLShortenerApp:
         return render_template('index.html', short_urls=short_urls)
 
     def is_valid_url(self, url):
+
         """
         Validate the given URL using a regular expression.
         Args:
@@ -71,11 +72,15 @@ class URLShortenerApp:
         Returns:
             bool: True if the URL is valid, False otherwise.
         """
-        try:
-            result = urlparse(url)
-            return all([result.scheme, result.netloc])
-        except ValueError:
-            return False
+
+        regex = re.compile(
+            r'^https?://'  # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain
+            r'localhost|'  # localhost
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or IP
+            r'(?::\d+)?'  # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+        return bool(re.match(regex, url))
 
     def generate_unique_id(self):
         """

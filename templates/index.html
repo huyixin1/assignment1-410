@@ -46,6 +46,7 @@
                 },
                 error: function(response) {
                     $("#result").text("Error: " + response.responseJSON.error);
+                    $("#url").val(''); // Clear the input field
                 }
             });
         });
