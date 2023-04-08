@@ -56,14 +56,20 @@ class URLShortenerApp:
         Returns:
             response (json): A JSON response containing a dictionary of all URLs.
         """
-        short_urls = [
-            {"id": key, "url": f"{BASE_URL}/{key}", "created_at": self.url_data[key]["created_at"], "original_url": self.url_data[key]["url"]}
+        short_urls = [{
+            "id": key, 
+            "url": f"{BASE_URL}/{key}", 
+            "created_at": self.url_data[key]["created_at"], 
+            "original_url": self.url_data[key]["url"],
+            "generated_uri": key
+            }
             for key in self.url_data
         ]
         short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
         return render_template('index.html', short_urls=short_urls)
 
     def is_valid_url(self, url):
+
         """
         Validate the given URL using a regular expression.
         Args:
@@ -71,11 +77,15 @@ class URLShortenerApp:
         Returns:
             bool: True if the URL is valid, False otherwise.
         """
-        try:
-            result = urlparse(url)
-            return all([result.scheme, result.netloc])
-        except ValueError:
-            return False
+
+        regex = re.compile(
+            r'^https?://'  # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain
+            r'localhost|'  # localhost
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or IP
+            r'(?::\d+)?'  # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+        return bool(re.match(regex, url))
 
     def generate_unique_id(self):
         """
@@ -150,13 +160,16 @@ class URLShortenerApp:
         ):
             # Return the existing short URL if found
             short_url = f"{BASE_URL}/{existing_id}"
+            generated_uri = existing_id
         else:
             # Create a new short URL if the URL does not exist
             unique_id = self.generate_unique_id()
             self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             short_url = f"{BASE_URL}/{unique_id}"
+            generated_uri = unique_id
 
-        return jsonify({'short_url': short_url}), 201
+        return jsonify({'short_url': short_url, 'generated_uri': generated_uri}), 201
+
 
     def unsupported_delete(self):
         """
