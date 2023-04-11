@@ -119,7 +119,7 @@ class URLShortenerApp:
             str: An error message if there is a collision, None otherwise.
         """
         if unique_id in self.url_data:
-            return f"Error: Collision detected for unique ID '{unique_id}'."
+            return f"URL already exists or collision detected for unique ID '{unique_id}' "
         return None
 
     def update_url(self, id):
