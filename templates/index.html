@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>URL Shortener</title>
 </head>
-
 <body>
     <h1>URL Shortener</h1>
     <form id="url-form">
@@ -30,28 +28,27 @@
     </ul>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $("#url-form").submit(function(event) {
-            event.preventDefault();
+        $("#url-form").submit(function(event) { // Listen for submit event on form
+            event.preventDefault(); // Prevent form from submitting normally
             const formData = {
-                url: $("#url").val()
+                url: $("#url").val() // Get value of URL input field
             };
             $.ajax({
                 type: "POST",
-                url: "/",
+                url: "/", // Send POST request to app root URL
                 contentType: "application/json",
-                data: JSON.stringify(formData),
+                data: JSON.stringify(formData), // Convert form data to JSON string
                 success: function(response) {
-                    $("#result").html("Shortened URL: <a href='" + response.short_url + "'>" + response.short_url + "</a>");
-                    $("#url").val('');
-                    location.reload();
+                    $("#result").html("Shortened URL: <a href='" + response.short_url + "'>" + response.short_url + "</a>"); // Display shortened URL
+                    $("#url").val(''); // Clear the input field
+                    location.reload(); // Refresh the page to display new URL in list
                 },
                 error: function(response) {
-                    $("#result").text("Error: " + response.responseJSON.error);
+                    $("#result").text("Error: " + response.responseJSON.error); // Display error message
                     $("#url").val(''); // Clear the input field
                 }
             });
         });
     </script>
 </body>
-
 </html>
