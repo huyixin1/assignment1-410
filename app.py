@@ -5,10 +5,13 @@ import random
 from datetime import datetime
 import os
 from urllib.parse import urlparse
+import hashlib
 
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
+hash_length = 8
 
 class URLShortenerApp:
+
     """
     A URL shortening service implemented as a Flask application.
     Attributes:
@@ -17,17 +20,21 @@ class URLShortenerApp:
     """
 
     def __init__(self):
+
         """
         Initialize the URLShortenerApp instance and set up the routes.
         """
+
         self.url_data = {}
         self.app = Flask(__name__)
         self.setup_routes()
 
     def setup_routes(self):
+
         """
         Set up the route handlers for the Flask application.
         """
+
         self.app.add_url_rule('/<string:id>', 'redirect_url', self.redirect_url, methods=['GET'])
         self.app.add_url_rule('/', 'serve_index', self.serve_index, methods=['GET'])
         self.app.add_url_rule('/<string:id>', 'update_url', self.update_url, methods=['PUT'])
@@ -37,29 +44,33 @@ class URLShortenerApp:
         self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
 
     def redirect_url(self, id):
+
         """
         Redirect the user to the original URL associated with the given ID.
         Args:
             id (str): The unique identifier of the shortened URL.
         Returns:
             response (redirect): A redirect response to the original URL if found,
-                                a JSON response with an error message otherwise.
+                                 a JSON response with an error message otherwise.
         """
+
         if id in self.url_data:
             return redirect(self.url_data[id]['url'])
         else:
             return jsonify({"error": "URL not found"}), 404
 
     def serve_index(self):
+
         """
         Retrieve all stored URLs.
         Returns:
             response (json): A JSON response containing a dictionary of all URLs.
         """
+
         short_urls = [{
-            "id": key, 
-            "url": f"{BASE_URL}/{key}", 
-            "created_at": self.url_data[key]["created_at"], 
+            "id": key,
+            "url": f"{BASE_URL}/{key}",
+            "created_at": self.url_data[key]["created_at"],
             "original_url": self.url_data[key]["url"],
             "generated_uri": key
             }
@@ -87,19 +98,32 @@ class URLShortenerApp:
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         return bool(re.match(regex, url))
 
-    def generate_unique_id(self):
+    def generate_unique_id(self, url):
+
         """
-        Generate a unique six-character identifier using a combination of ASCII letters and digits.
+        Generate a unique identifier using the first `hash_length` characters of the SHA-256 hash of the URL.
+        Args:
+            url (str): The URL to generate a unique identifier for.
         Returns:
-            str: A six-character unique identifier.
+            str: An `hash_length`-character unique identifier.
+        """       
+        hash_object = hashlib.sha256(url.encode('utf-8'))
+        return hash_object.hexdigest()[:hash_length]
+    
+    def check_collision(self, unique_id):
         """
-        characters = string.ascii_letters + string.digits
-        while True:
-            unique_id = ''.join(random.choices(characters, k=6))
-            if unique_id not in self.url_data:
-                return unique_id
+        Check for collisions between unique IDs.
+        Args:
+            unique_id (str): The unique ID to check for collisions.
+        Returns:
+            str: An error message if there is a collision, None otherwise.
+        """
+        if unique_id in self.url_data:
+            return f"Error: Collision detected for unique ID '{unique_id}'."
+        return None
 
     def update_url(self, id):
+
         """
         Update the URL associated with the given ID.
         Args:
@@ -107,6 +131,7 @@ class URLShortenerApp:
         Returns:
             response (json): A JSON response containing a message or error.
         """
+
         data = request.get_json()
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
@@ -121,6 +146,7 @@ class URLShortenerApp:
             return jsonify({'error': 'Invalid URL'}), 400
 
     def delete_url(self, id):
+
         """
         Delete the URL associated with the given ID.
         Args:
@@ -128,6 +154,7 @@ class URLShortenerApp:
         Returns:
             response (json): A JSON response containing a message or error.
         """
+
         if id in self.url_data:
             del self.url_data[id]
             return jsonify({'message': 'Deleted'}), 200
@@ -135,57 +162,60 @@ class URLShortenerApp:
             return jsonify({'error': 'Not Found'}), 404
 
     def get_all_keys(self):
+
         """
         Retrieve all stored URL identifiers.
         Returns:
             response (json): A JSON response containing a list of URL identifiers.
         """
+
         return jsonify(list(self.url_data.keys())), 200
 
     def create_short_url(self):
+
         """
         Create a short URL for the given long URL.
         Returns:
             response (json): A JSON response containing the short URL identifier or an error message.
         """
+
         data = request.get_json()
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
         url = data.get('url')
         if url is None or not self.is_valid_url(url):
             return jsonify({'error': 'Invalid URL'}), 400
-        if existing_id := next(
-            (key for key, value in self.url_data.items() if value['url'] == url),
-            None,
-        ):
-            # Return the existing short URL if found
-            short_url = f"{BASE_URL}/{existing_id}"
-            generated_uri = existing_id
-        else:
-            # Create a new short URL if the URL does not exist
-            unique_id = self.generate_unique_id()
-            self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-            short_url = f"{BASE_URL}/{unique_id}"
-            generated_uri = unique_id
+
+        unique_id = self.generate_unique_id(url)
+        if collision_error := self.check_collision(unique_id):
+            return jsonify({'error': collision_error}), 409
+
+        self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+        short_url = f"{BASE_URL}/{unique_id}"
+        generated_uri = unique_id
 
         return jsonify({'short_url': short_url, 'generated_uri': generated_uri}), 201
 
 
     def unsupported_delete(self):
+
         """
         Handle unsupported DELETE requests without an identifier.
         Returns:
             response (json): A JSON response containing an error message.
         """
+
         return jsonify({'error': 'Method not supported'}), 404
 
     def run(self, *args, **kwargs):
+
         """
         Run the Flask application with the given arguments and keyword arguments.
         Args:
             *args: Variable-length argument list.
             **kwargs: Arbitrary keyword arguments.
         """
+
         self.app.run(debug=True, *args, **kwargs)
 
 if __name__ == '__main__':
