@@ -49,7 +49,6 @@ The URLShortenerApp class contains methods for creating, updating, and deleting 
 The URL shortener application includes a test suite that covers most of the core functionalities. The tests are located in the test_url_shortener_app.py file. The tests cover validation and generation of short URLs, retrieval of short URLs, and redirection, updating, and deletion of short URLs. The tests also cover error handling for invalid input, unsupported requests, and nonexistent unique IDs.
 
 ### Test Coverage
-The tests cover the following functionalities:
 * Validation of URLs
 * Generation of unique IDs
 * Creation of short URLs with valid input
