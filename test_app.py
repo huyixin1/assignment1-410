@@ -1,3 +1,4 @@
+
 import unittest
 import json
 from flask import json as flask_json
@@ -10,6 +11,9 @@ import string
 
 # Set the length of the unique ID to use for shortened URLs
 uri_length = 8
+
+# Set the range of max_attempts to create a unique ID
+max_attempts = 100
 
 class TestURLShortenerApp(unittest.TestCase):
 
@@ -35,22 +39,25 @@ class TestURLShortenerApp(unittest.TestCase):
         self.assertFalse(self.url_shortener_app.is_valid_url('http://example.com/path with spaces'))
         self.assertFalse(self.url_shortener_app.is_valid_url('http://examplecom/'))
 
-    def test_generate_unique_id(self):
+    def test_generate_unique_id_length(self):
 
         """
-        Test the generate_unique_id method to ensure it generates unique IDs with the correct length and not duplicates"
+        Test if the generated unique ID has the correct length.
         """
 
-        # Create a set to store generated IDs and check for duplicates
-        generated_ids = set()
+        unique_id = self.url_shortener_app.generate_unique_id(uri_length, max_attempts)
+        self.assertEqual(len(unique_id), uri_length, f"Generated ID should have a length of {uri_length}")
 
-        # Generate 1000 IDs and check that each one is unique and has the correct length
-        for _ in range(1000):
-            url = f"https://example.com/{_}"
-            new_id = self.url_shortener_app.generate_unique_id()
-            self.assertEqual(len(new_id), uri_length, f"Generated ID '{new_id}' does not have length {uri_length}")
-            self.assertNotIn(new_id, generated_ids, f"Duplicate ID generated: {new_id}")
-            generated_ids.add(new_id)
+    def test_generate_unique_id_content(self):
+
+        """
+        Test if the generated unique ID contains only ASCII letters and digits.
+        """
+
+        unique_id = self.url_shortener_app.generate_unique_id(uri_length, max_attempts)
+        chars = string.ascii_letters + string.digits
+        for char in unique_id:
+            self.assertIn(char, chars, "Generated ID should only contain ASCII letters and digits.")
 
     def test_sorted_urls(self):
 

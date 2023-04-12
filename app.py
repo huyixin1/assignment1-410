@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 
 # Set the length of the unique ID to use for shortened URLs
-uri_length = 10
+uri_length = 8
 
 # Set the range of max_attempts to create a unique ID
 max_attempts = 100
@@ -109,26 +109,24 @@ class URLShortenerApp:
         # Check for special characters not allowed in URLs
         return False if re.search(r'[<>]', url) else bool(re.match(regex, url))
 
-    def generate_unique_id(self, length=uri_length, max_attempts=max_attempts):
+    def generate_unique_id(self, uri_length=uri_length, max_attempts=max_attempts):
 
         """
-        Generate a unique identifier using a combination of ASCII letters, digits, and special characters.
-        Raise an error if the max_attempts is reached.
+        Generate a unique identifier using a combination of ASCII letters and digits. Raise an error if the max_attempts is reached.
         Args:
             length (int): The length of the unique identifier.
         Returns:
             str: A `length`-character unique identifier.
         """
 
-        chars = string.ascii_letters + string.digits + string.punctuation  # Include special characters
-        for _ in range(max_attempts):
-            unique_id = ''.join(random.choices(chars, k=length))
+        attempts = 0
+        chars = string.ascii_letters + string.digits
+        while attempts < max_attempts:
+            unique_id = ''.join(random.choices(chars, k=uri_length))
             if unique_id not in self.url_data:
                 return unique_id
-
-        raise ValueError(
-            f"Failed to generate a unique ID after {max_attempts} attempts"
-        )
+            attempts += 1
+        raise ValueError("Exceeded maximum number of attempts to generate a unique ID.")
     
     def check_collision(self, unique_id):
 
