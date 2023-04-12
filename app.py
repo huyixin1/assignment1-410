@@ -145,7 +145,7 @@ class URLShortenerApp:
         url = data.get('url')
         if url is not None and self.is_valid_url(url):
             if id in self.url_data:
-                self.url_data[id] = url
+                self.url_data[id] = {"url": url, "created_at": self.url_data[id]["created_at"]}
                 return jsonify({'message': 'Updated'}), 200
             else:
                 return jsonify({'error': 'Not Found'}), 404
