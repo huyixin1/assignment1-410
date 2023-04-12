@@ -13,7 +13,8 @@ To make it easier for users to interact with the application, we have created a 
 
 ### Requirements
 * Python 3.8.8
-* Flask
+* pip 22.3.1
+* Flask 1.1.2
 * List of other required libraries and their versions (see below)
 
 ### Installation and Usage
