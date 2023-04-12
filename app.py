@@ -85,12 +85,16 @@ class URLShortenerApp:
     def is_valid_url(self, url):
 
         """
-        Validate the given URL using a regular expression.
+        Validate the given URL using a regular expression and check for URL length and special characters.
         Args:
             url (str): The URL to validate.
         Returns:
             bool: True if the URL is valid, False otherwise.
         """
+
+        # Check for URL length (e.g., not more than 2000 characters)
+        if len(url) > 2000:
+            return False
 
         regex = re.compile(
             r'^https?://'  # http:// or https://
@@ -98,7 +102,12 @@ class URLShortenerApp:
             r'localhost|'  # localhost
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or IP
             r'(?::\d+)?'  # optional port (number that follows the domain name or IP address and)
-            r'(?:/?|[/?]\S+)$', re.IGNORECASE) # optional path after domain name 
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE) # optional path after domain name
+
+        # Check for special characters not allowed in URLs
+        if re.search(r'[<>]', url):
+            return False
+
         # Return True if the URL matches the regular expression, otherwise return False
         return bool(re.match(regex, url))
 
@@ -112,7 +121,10 @@ class URLShortenerApp:
             str: An `hash_length`-character unique identifier.
         """       
 
+        # Compute the SHA-256 hash of the URL
         hash_object = hashlib.sha256(url.encode('utf-8'))
+
+        # Return the first 'hash_length' characters
         return hash_object.hexdigest()[:hash_length]
     
     def check_collision(self, unique_id):
