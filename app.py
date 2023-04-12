@@ -92,8 +92,8 @@ class URLShortenerApp:
             bool: True if the URL is valid, False otherwise.
         """
 
-        # Check for URL length (e.g., not more than 2000 characters)
-        if len(url) > 2000:
+        # Check for URL length (e.g., not more than 1000 characters)
+        if len(url) > 1000:
             return False
 
         regex = re.compile(
