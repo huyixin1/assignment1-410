@@ -9,7 +9,7 @@ import random
 import string
 
 # Set the length of the unique ID to use for shortened URLs
-hash_length = 8
+uri_length = 8
 
 class TestURLShortenerApp(unittest.TestCase):
 
@@ -44,11 +44,11 @@ class TestURLShortenerApp(unittest.TestCase):
         # Create a set to store generated IDs and check for duplicates
         generated_ids = set()
 
-        # Generate 100 IDs and check that each one is unique and has the correct length
-        for _ in range(100):
+        # Generate 1000 IDs and check that each one is unique and has the correct length
+        for _ in range(1000):
             url = f"https://example.com/{_}"
-            new_id = self.url_shortener_app.generate_unique_id(url)
-            self.assertEqual(len(new_id), hash_length, f"Generated ID '{new_id}' does not have length {hash_length}")
+            new_id = self.url_shortener_app.generate_unique_id()
+            self.assertEqual(len(new_id), uri_length, f"Generated ID '{new_id}' does not have length {uri_length}")
             self.assertNotIn(new_id, generated_ids, f"Duplicate ID generated: {new_id}")
             generated_ids.add(new_id)
 
@@ -108,7 +108,7 @@ class TestURLShortenerApp(unittest.TestCase):
         data = json.loads(response.data)
         self.assertIn('short_url', data)
         self.assertIn('generated_uri', data)
-        self.assertEqual(len(data['generated_uri']), hash_length)
+        self.assertEqual(len(data['generated_uri']), uri_length)
         self.assertTrue(data['generated_uri'].isalnum()) # check if all characters are alphanumeric
 
     def test_create_short_url_invalid(self):
@@ -139,7 +139,7 @@ class TestURLShortenerApp(unittest.TestCase):
         Test the create_short_url method to ensure it returns an error when provided with a URL that is too long.
         """
 
-        long_url = 'https://www.example.com/' + ''.join(random.choices(string.ascii_letters + string.digits, k=2000))
+        long_url = 'https://www.example.com/' + ''.join(random.choices(string.ascii_letters + string.digits, k=1000))
         response = self.client.post('/', json={'url': long_url})
         self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)

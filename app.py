@@ -5,13 +5,12 @@ import random
 from datetime import datetime
 import os
 from urllib.parse import urlparse
-import hashlib
 
 # Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 
 # Set the length of the unique ID to use for shortened URLs
-hash_length = 8
+uri_length = 8
 
 class URLShortenerApp:
 
@@ -107,21 +106,25 @@ class URLShortenerApp:
         # Check for special characters not allowed in URLs
         return False if re.search(r'[<>]', url) else bool(re.match(regex, url))
 
-    def generate_unique_id(self, url):
+    def generate_unique_id(self, length=uri_length, max_attempts=100):
 
         """
-        Generate a unique identifier using the first `hash_length` characters of the SHA-256 hash of the URL.
+        Generate a unique identifier using a combination of ASCII letters and digits. Raise an error if the max_attempts is reached.
         Args:
-            url (str): The URL to generate a unique identifier for.
+            length (int): The length of the unique identifier.
         Returns:
-            str: An `hash_length`-character unique identifier.
-        """       
+            str: A `length`-character unique identifier.
+        """
 
-        # Compute the SHA-256 hash of the URL
-        hash_object = hashlib.sha256(url.encode('utf-8'))
+        chars = string.ascii_letters + string.digits
+        for _ in range(max_attempts):
+            unique_id = ''.join(random.choices(chars, k=length))
+            if unique_id not in self.url_data:
+                return unique_id
 
-        # Return the first 'hash_length' characters
-        return hash_object.hexdigest()[:hash_length]
+        raise ValueError(
+            f"Failed to generate a unique ID after {max_attempts} attempts"
+        )
     
     def check_collision(self, unique_id):
 
@@ -189,9 +192,11 @@ class URLShortenerApp:
     def create_short_url(self):
 
         """
-        Create a short URL for the given long URL.
+        Create a short URL for the given long URL. If the URL already exists in the url_data dictionary, return an error message.
+        
         Returns:
-            response (json): A JSON response containing the short URL identifier or an error message.
+            response (json): A JSON response containing the short URL identifier, an error message if the URL already exists,
+                            or an error message for an invalid URL.
         """
 
         data = request.get_json()
@@ -201,16 +206,23 @@ class URLShortenerApp:
         if url is None or not self.is_valid_url(url):
             return jsonify({'error': 'Invalid URL'}), 400
 
-        unique_id = self.generate_unique_id(url)
-        if collision_error := self.check_collision(unique_id):
-            return jsonify({'error': collision_error}), 409
+        if existing_id := next(
+            (id for id, value in self.url_data.items() if value['url'] == url),
+            None,
+        ):
+            short_url = f"{BASE_URL}/{existing_id}"
+            generated_uri = existing_id
+            return jsonify({'error': 'URL already exists', 'short_url': short_url, 'generated_uri': generated_uri}), 409
 
-        self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        short_url = f"{BASE_URL}/{unique_id}"
-        generated_uri = unique_id
+        try:
+            unique_id = self.generate_unique_id(uri_length)
+            self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+            short_url = f"{BASE_URL}/{unique_id}"
+            generated_uri = unique_id
 
-        return jsonify({'short_url': short_url, 'generated_uri': generated_uri}), 201
-
+            return jsonify({'short_url': short_url, 'generated_uri': generated_uri}), 201
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 500
 
     def unsupported_delete(self):
 

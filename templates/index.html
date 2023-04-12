@@ -49,53 +49,64 @@
                     location.reload(); // Refresh the page to display new URL in list
                 },
                 error: function(response) {
-                    // Display error message and clear the input field
-                    $("#result").text("Error: " + response.responseJSON.error);
+                    // Handle different error messages
+                    if (response.status === 409) {
+                        $("#result").html("Error: " + response.responseJSON.error + ". Existing shortened URL: <a href='" + response.responseJSON.short_url + "'>" + response.responseJSON.short_url + "</a>");
+                    } else {
+                        $("#result").text("Error: " + response.responseJSON.error);
+                    }
                     $("#url").val('');
                 }
             });
         });
 
-        // Update URL event listener
-        $(".update-url").click(function() {
-            const urlId = $(this).data("id");
-            const newUrl = prompt("Enter the new URL:");
-            if (newUrl) {
-                // Send PUT request to update the URL
-                $.ajax({
-                    type: "PUT",
-                    url: `/${urlId}`,
-                    contentType: "application/json",
-                    data: JSON.stringify({ url: newUrl }),
-                    success: function() {
-                        alert("URL updated.");
-                        location.reload();
-                    },
-                    error: function(response) {
-                        alert("Error: " + response.responseJSON.error);
-                    }
-                });
-            }
-        });
+// Update URL event listener
+$(".update-url").click(function() {
+  const urlId = $(this).data("id");
+  const newUrl = prompt("Enter the new URL:");
+  if (newUrl) {
+    // Send PUT request to update the URL
+    $.ajax({
+      type: "PUT",
+      url: `/${urlId}`,
+      contentType: "application/json",
+      data: JSON.stringify({ url: newUrl }),
+      success: function(response) {
+        // Display success message and reload the page to show updated URL
+        alert("URL successfully updated!");
+        location.reload();
+      },
+      error: function(response) {
+        // Handle different error messages
+        if (response.status === 409) {
+          alert("Error: " + response.responseJSON.error + ". Existing shortened URL: " + response.responseJSON.short_url);
+        } else {
+          alert("Error: " + response.responseJSON.error);
+        }
+      }
+    });
+  }
+});
 
-        // Delete URL event listener
-        $(".delete-url").click(function() {
-            const urlId = $(this).data("id");
-            if (confirm("Are you sure you want to delete this URL?")) {
-                // Send DELETE request to delete the URL
-                $.ajax({
-                    type: "DELETE",
-                    url: `/${urlId}`,
-                    success: function() {
-                        alert("URL deleted.");
-                        location.reload();
-                    },
-                    error: function(response) {
-                        alert("Error: " + response.responseJSON.error);
-                    }
-                });
-            }
-        });
-    </script>
-</body>
-</html>
+    // Delete URL event listener
+    $(".delete-url").click(function() {
+        const urlId = $(this).data("id");
+        if (confirm("Are you sure you want to delete this URL?")) {
+            // Send DELETE request to remove the URL
+            $.ajax({
+                type: "DELETE",
+                url: `/${urlId}`,
+                success: function(response) {
+                    // Display success message and reload the page to remove deleted URL
+                    alert("URL successfully deleted!");
+                    location.reload();
+                },
+                error: function(response) {
+                    // Display error message
+                    alert("Error: " + response.responseJSON.error);
+                }
+            });
+        }
+    });
+</script>
+
