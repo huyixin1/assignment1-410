@@ -6,11 +6,6 @@ The application consists of a single Python file (app.py) and an HTML file (inde
 
 The URLShortenerApp class contains methods for creating, updating, and deleting short URLs, as well as utility methods for validating URLs, generating unique identifiers, and checking for collisions between identifiers. The class also sets up the necessary Flask routes and provides a method for running the Flask application.
 
-### Limitations
-The current implementation stores data into a dictionary and may not scale well when the number of entries grows. Dictionaries are in-memory data structures, which may cause performance issues or limitations in memory. A more efficient and scalable solution would be to use a database system to store the data. For example, a relational database management system or a NoSQL database.
-
-Additionally, there is an trade-off between the length of the generated URI and the possibility of collisions. Collisions occurs when two different long URLs are assigned to the same shortened URI. Shorter URIs are more user-friendly and require less storage, but they also increase the likelihood of collisions. When the number of unique URIs increases, the probability of collisions also increases. This could lead to issues in the functionality of the application. To tackle this matter, the application could employ a more advanced URI generation algorithm, or increase the length of the generated URIs. However, increasing the length of the URIs may result into less convenient shortened URLs.
-
 ### Requirements
 * Python 3.8.8
 * pip 22.3.1
@@ -51,3 +46,8 @@ To run the tests, execute the following command from the terminal:
 ```console
 python -m unittest test_app.py
 ```
+
+### Limitations
+The current implementation stores data into a dictionary and may not scale well when the number of entries grows. Dictionaries are in-memory data structures, which may cause performance issues or limitations in memory. A more efficient and scalable solution would be to use a database system to store the data. For example, a relational database management system or a NoSQL database.
+
+Additionally, there is an trade-off between the length of the generated URI and the possibility of collisions. Collisions occurs when two different long URLs are assigned to the same shortened URI. Shorter URIs are more user-friendly and require less storage, but they also increase the likelihood of collisions. When the number of unique URIs increases, the probability of collisions also increases. This could lead to issues in the functionality of the application. To tackle this matter, the application could employ a more advanced URI generation algorithm, or increase the length of the generated URIs. However, increasing the length of the URIs may result into less convenient shortened URLs.
