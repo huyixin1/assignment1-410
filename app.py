@@ -12,6 +12,9 @@ BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 # Set the length of the unique ID to use for shortened URLs
 uri_length = 8
 
+# Set the range of max_attempts to create a unique ID
+max_attempts = 100
+
 class URLShortenerApp:
 
     """
@@ -106,7 +109,7 @@ class URLShortenerApp:
         # Check for special characters not allowed in URLs
         return False if re.search(r'[<>]', url) else bool(re.match(regex, url))
 
-    def generate_unique_id(self, length=uri_length, max_attempts=100):
+    def generate_unique_id(self, length=uri_length, max_attempts=max_attempts):
 
         """
         Generate a unique identifier using a combination of ASCII letters and digits. Raise an error if the max_attempts is reached.
