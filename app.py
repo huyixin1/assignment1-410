@@ -105,11 +105,7 @@ class URLShortenerApp:
             r'(?:/?|[/?]\S+)$', re.IGNORECASE) # optional path after domain name
 
         # Check for special characters not allowed in URLs
-        if re.search(r'[<>]', url):
-            return False
-
-        # Return True if the URL matches the regular expression, otherwise return False
-        return bool(re.match(regex, url))
+        return False if re.search(r'[<>]', url) else bool(re.match(regex, url))
 
     def generate_unique_id(self, url):
 

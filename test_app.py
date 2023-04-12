@@ -98,6 +98,7 @@ class TestURLShortenerApp(unittest.TestCase):
         self.assertIn('generated_uri', data)
 
     def test_create_short_url(self):
+
         """
         Test the create_short_url method to ensure it creates a short URL when provided with a valid URL.
         """
@@ -111,6 +112,7 @@ class TestURLShortenerApp(unittest.TestCase):
         self.assertTrue(data['generated_uri'].isalnum()) # check if all characters are alphanumeric
 
     def test_create_short_url_invalid(self):
+
         """
         Test the create_short_url method to ensure it returns an error when provided with an invalid URL.
         """    
@@ -121,6 +123,7 @@ class TestURLShortenerApp(unittest.TestCase):
         self.assertIn('error', data)
 
     def test_create_short_url_special_characters(self):
+
         """
         Test the create_short_url method to ensure it returns an error when provided with a URL containing special characters.
         """
@@ -131,6 +134,7 @@ class TestURLShortenerApp(unittest.TestCase):
         self.assertIn('error', data)
 
     def test_create_short_url_too_long(self):
+        
         """
         Test the create_short_url method to ensure it returns an error when provided with a URL that is too long.
         """
