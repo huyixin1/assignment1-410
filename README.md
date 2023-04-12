@@ -1,5 +1,5 @@
 ## URL Shortener Application
-This simple URL shortening application is built using Python and Flask. This application takes long URLs as input, and enables users to create, update, and delete shortened URLs. The shortened URLs contain a URI, which is generated using a combination of ASCII letters and digits. The length of this URI can be specified as a parameter and defaults to 8. The application also features additional functionality, such as viewing all stored URLs with their corresponding URI's and timestamps. For easy interaction, this application contains a simple User Interface (UI) that can be locally accessed from a web browser.
+This simple URL shortening application is built using Python and Flask. This application takes long URLs as input, and enables users to create, update, and delete shortened URLs. The shortened URLs contain a URI, which is generated using a combination of ASCII letters and digits. The length of this URI can be specified as a parameter and defaults to 8. The application also features additional functionality, such as viewing all stored URLs with their corresponding URI's and timestamps. For easy interaction, this application contains a simple UI that can be locally accessed from a web browser.
 
 ### Features
 * Create a short URL given a long URL
