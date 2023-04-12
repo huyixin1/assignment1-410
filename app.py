@@ -7,7 +7,10 @@ import os
 from urllib.parse import urlparse
 import hashlib
 
+# Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
+
+# Set the length of the unique ID to use for shortened URLs
 hash_length = 8
 
 class URLShortenerApp:
@@ -94,8 +97,9 @@ class URLShortenerApp:
             r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain
             r'localhost|'  # localhost
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or IP
-            r'(?::\d+)?'  # optional port
-            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+            r'(?::\d+)?'  # optional port (number that follows the domain name or IP address and)
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE) # optional path after domain name 
+        # Return True if the URL matches the regular expression, otherwise return False
         return bool(re.match(regex, url))
 
     def generate_unique_id(self, url):
@@ -107,10 +111,12 @@ class URLShortenerApp:
         Returns:
             str: An `hash_length`-character unique identifier.
         """       
+
         hash_object = hashlib.sha256(url.encode('utf-8'))
         return hash_object.hexdigest()[:hash_length]
     
     def check_collision(self, unique_id):
+
         """
         Check for collisions between unique IDs.
         Args:
@@ -118,6 +124,7 @@ class URLShortenerApp:
         Returns:
             str: An error message if there is a collision, None otherwise.
         """
+
         if unique_id in self.url_data:
             return f"URL already exists or collision detected for unique ID '{unique_id}' "
         return None
