@@ -1,14 +1,53 @@
 ## URL Shortener App
 This is a simple URL shortening application built using Python and the Flask framework. This application takes long URLs and enables users to create, update, and delete shortened URLs. It also features additional functionality, such as viewing all stored URLs with the corresponding URI's and timestamps. To make it easier for users to interact with the application, we have created a simple user interface that can be accessed from a web browser on your local machine. This UI allows users to input long URLs, generate a shortened URL, update and delete the URLs, and view all URLs.
 
-### Technologies
+### Features
+* Create short URLs from long URLs
+* Update the original URL associated with a short URL
+* Delete short URLs
+* View all stored short URLs
+
+### Requirements
+* Python 3.8.8
+* List of other required libraries and their versions (see below)
+
+### Installation and Usage
+1. Clone the repository or download the provided Python and HTML files to your local machine.
+2. Install the virtualenv package by running the following command in your terminal or command prompt:
+```console
+pip install virtualenv
+```
+3. Create and activate a virtual environment for the project:
+```console
+virtualenv env_name
+source env_name/bin/activate # Mac or Linux
+env_name\Scripts\activate.bat # Windows
+```
+4. Install Flask using pip:
+```console
+pip install Flask
+```
+5. Install the other required libraries:
+```console
+pip install -r requirements.txt
+```
+6. Run the Flask app:
+```console
+python app.py
+```
+7. Open your browser and navigate to http://localhost:5000 to access the URL shortener. Now you can interact with the URL shortener application.
+
+### Application Structure
+The application consists of a single Python file (app.py) and an HTML file (index.html). The Python file contains the URLShortenerApp class that implements the URL shortening service using Flask, while the HTML file provides the user interface for interacting with the service.
+
+The URLShortenerApp class contains methods for creating, updating, and deleting short URLs, as well as utility methods for validating URLs, generating unique identifiers, and checking for collisions between identifiers. The class also sets up the necessary Flask routes and provides a method for running the Flask application.
 
 
 ### Testing
 
 The URL shortener application includes a comprehensive test suite that covers most of the core functionalities. The tests are located in the test_url_shortener_app.py file. Overall, the tests cover validation and generation of short URLs, retrieval of short URLs, and redirection, updating, and deletion of short URLs. The tests also cover error handling for invalid input, unsupported requests, and nonexistent unique IDs.
 
-## Test Coverage
+#### Test Coverage
 The test cover the following functionalities:
 * Validation of URLs
 * Generation of unique IDs
@@ -24,9 +63,9 @@ The test cover the following functionalities:
 * Deletion of a URL associated with a unique ID
 * Error handling for unsupported delete requests
 
-## Running Tests
+#### Running Tests
 
-To run the tests, make sure you have the required dependencies installed. Then, execute the following command from the terminal:
+To run the tests, make sure you have the required dependencies installed. Then, execute the following command from the terminal. This command will run all the test cases and display the results in the terminal:
 ```console
 python -m unittest test_app.py
 ```
