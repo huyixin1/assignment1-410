@@ -52,7 +52,6 @@ class URLShortenerApp:
         self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
         self.app.add_url_rule('/search/<string:uri>', 'search_uri', self.search_uri, methods=['GET'])
 
-
     def redirect_url(self, id):
 
         """
