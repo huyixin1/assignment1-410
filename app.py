@@ -256,7 +256,9 @@ class URLShortenerApp:
 
             return jsonify({'short_url': short_url, 'generated_uri': generated_uri}), 201
         except ValueError as e:
-            return jsonify({'error': str(e)}), 500
+            error_msg = f"An internal server error occurred while generating a unique identifier: {str(e)}. Function: create_short_url(). Module: url_shortener.py"
+            return jsonify({'error': error_msg}), 500
+
 
     def unsupported_delete(self):
 
