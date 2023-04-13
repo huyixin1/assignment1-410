@@ -15,6 +15,9 @@ uri_length = 8
 # Set the range of max_attempts to create a unique ID
 max_attempts = 100
 
+# Set the max URL length
+INTERNET_MAX_PATH_LENGTH = 2048
+
 class TestURLShortenerApp(unittest.TestCase):
 
     def setUp(self):
@@ -26,7 +29,7 @@ class TestURLShortenerApp(unittest.TestCase):
         self.url_shortener_app = URLShortenerApp()
         self.client = self.url_shortener_app.app.test_client()
 
-    def test_is_valid_url(self):
+    def test_is_valid_url_pattern(self):
 
         """
         Test the is_valid_url method to ensure it correctly identifies valid and invalid URLs.
@@ -38,6 +41,16 @@ class TestURLShortenerApp(unittest.TestCase):
         self.assertFalse(self.url_shortener_app.is_valid_url('google.com'))
         self.assertFalse(self.url_shortener_app.is_valid_url('http://example.com/path with spaces'))
         self.assertFalse(self.url_shortener_app.is_valid_url('http://examplecom/'))
+
+    def test_is_valid_url_too_long(self):
+
+        """
+        Test that the is_valid_url method correctly identifies URLs that exceed the maximum allowed length as invalid.
+        """
+
+        app = URLShortenerApp()
+        url = "http://" + "a" * (INTERNET_MAX_PATH_LENGTH - 6) + ".com"
+        self.assertFalse(app.is_valid_url(url))
 
     def test_generate_unique_id_length(self):
 
@@ -124,18 +137,6 @@ class TestURLShortenerApp(unittest.TestCase):
         """
 
         response = self.client.post('/', json={'url': 'https://www.example.com/<script>alert("test")</script>'})
-        self.assertEqual(response.status_code, 400)
-        data = json.loads(response.data)
-        self.assertIn('error', data)
-
-    def test_create_short_url_too_long(self):
-        
-        """
-        Test the create_short_url method to ensure it returns an error when provided with a URL that is too long.
-        """
-
-        long_url = 'https://www.example.com/' + ''.join(random.choices(string.ascii_letters + string.digits, k=1000))
-        response = self.client.post('/', json={'url': long_url})
         self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
         self.assertIn('error', data)

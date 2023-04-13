@@ -10,12 +10,12 @@ from urllib.parse import urlparse
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 
 # Set the length of the unique ID to use for shortened URLs
-uri_length = 8
+URI_LENGTH = 8
 
 # Set the range of max_attempts to create a unique ID
-max_attempts = 100
+MAX_ATTEMPTS = 100
 
-# Set the longest URL length
+# Set the max URL length
 INTERNET_MAX_PATH_LENGTH = 2048
 
 class URLShortenerApp:
@@ -98,7 +98,7 @@ class URLShortenerApp:
             bool: True if the URL is valid, False otherwise.
         """
 
-        # Check for URL length (e.g., not more than 2048 characters)
+        # Check for URL length
         if len(url) > INTERNET_MAX_PATH_LENGTH:
             return False
 
@@ -113,7 +113,7 @@ class URLShortenerApp:
         # Check for special characters not allowed in URLs
         return False if re.search(r'[<>]', url) else bool(re.match(regex, url))
 
-    def generate_unique_id(self, uri_length=uri_length, max_attempts=max_attempts):
+    def generate_unique_id(self, uri_length=URI_LENGTH, max_attempts=MAX_ATTEMPTS):
 
         """
         Generate a unique identifier using a combination of ASCII letters and digits. Raise an error if the max_attempts is reached.
@@ -126,7 +126,7 @@ class URLShortenerApp:
         attempts = 0
         chars = string.ascii_letters + string.digits
         while attempts < max_attempts:
-            unique_id = ''.join(random.choices(chars, k=uri_length))
+            unique_id = ''.join(random.choices(chars, k=URI_LENGTH))
             if unique_id not in self.url_data:
                 return unique_id
             attempts += 1
@@ -241,7 +241,7 @@ class URLShortenerApp:
             return jsonify({'error': 'URL already exists', 'short_url': short_url, 'generated_uri': generated_uri}), 409
 
         try:
-            unique_id = self.generate_unique_id(uri_length)
+            unique_id = self.generate_unique_id(URI_LENGTH)
             self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             short_url = f"{BASE_URL}/{unique_id}"
             generated_uri = unique_id
