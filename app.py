@@ -216,7 +216,10 @@ class URLShortenerApp:
             response (json): A JSON response containing a list of URL identifiers.
         """
 
-        return jsonify(list(self.url_data.keys())), 301
+        if len(self.url_data.keys()) == 0:
+            return "No URL identifiers found.", 404
+        else:
+            return jsonify(list(self.url_data.keys())), 200
 
     def create_short_url(self):
 
