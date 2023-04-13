@@ -164,7 +164,7 @@ class URLShortenerApp:
             original_url = self.url_data[uri]['url']
             shortened_url = f"{BASE_URL}/{uri}"
             timestamp = self.url_data[uri]['created_at']
-            return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp})
+            return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp}), 200
         else:
             return jsonify({'error': 'URI not found'}), 404
 
