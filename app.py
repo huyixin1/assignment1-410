@@ -164,7 +164,7 @@ class URLShortenerApp:
             original_url = self.url_data[uri]['url']
             shortened_url = f"{BASE_URL}/{uri}"
             timestamp = self.url_data[uri]['created_at']
-            return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp})
+            return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp}), 200
         else:
             return jsonify({'error': 'URI not found'}), 404
 
@@ -219,7 +219,7 @@ class URLShortenerApp:
         if len(self.url_data.keys()) == 0:
             return "No URL identifiers found.", 404
         else:
-            return jsonify(list(self.url_data.keys())), 200
+            return jsonify(list(self.url_data.keys())), 301
 
     def create_short_url(self):
 
