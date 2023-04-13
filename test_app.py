@@ -103,18 +103,6 @@ class TestURLShortenerApp(unittest.TestCase):
         data = json.loads(response.data)
         self.assertIn('short_url', data)
         self.assertIn('generated_uri', data)
-
-    def test_create_short_url(self):
-
-        """
-        Test the create_short_url method to ensure it creates a short URL when provided with a valid URL.
-        """
-
-        response = self.client.post('/', json={'url': 'https://www.example.com'})
-        self.assertEqual(response.status_code, 201)
-        data = json.loads(response.data)
-        self.assertIn('short_url', data)
-        self.assertIn('generated_uri', data)
         self.assertEqual(len(data['generated_uri']), uri_length)
         self.assertTrue(data['generated_uri'].isalnum()) # check if all characters are alphanumeric
 
