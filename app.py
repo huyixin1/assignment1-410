@@ -193,18 +193,17 @@ class URLShortenerApp:
             return jsonify({'error': 'Invalid URL'}), 400
 
     def delete_url(self, id):
-
         """
         Delete the URL associated with the given ID.
         Args:
             id (str): The ID of the URL to delete.
         Returns:
-            response (json): A JSON response containing a message or error.
+            response: An HTTP response with a status code.
         """
 
         if id in self.url_data:
             del self.url_data[id]
-            return jsonify({'message': 'Deleted'}), 204
+            return '', 204
         else:
             return jsonify({'error': 'Not Found'}), 404
 
