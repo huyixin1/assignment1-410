@@ -1,10 +1,10 @@
 ## URL Shortener Application
-This simple URL shortening application is built using Python and Flask. This application takes long URLs as input, and enables users to create, update, and delete shortened URLs. The shortened URLs contain a URI, which is generated using a combination of ASCII letters and digits. The length of this URI can be specified as a parameter and defaults to 8. The application also features additional functionality, such as viewing all stored URLs with their corresponding URI's and timestamps. For easy interaction, this application contains a simple UI that can be locally accessed from a web browser.
+This simple URL shortening application is built using Python and Flask. This application takes long URLs as input, and enables users to create, update, and delete shortened URLs. The shortened URLs contain a URI, which is generated using a combination of ASCII letters and digits. The length of this URI can be specified as a parameter and defaults to 8. The application also features additional functionality, such as searching and viewing all stored URLs with their corresponding URI's and timestamps. For seamless interaction, this application contains a simple UI that can be locally accessed from a web browser.
 
 ### Structure
 The application consists of a single Python file (app.py) and an HTML file (index.html). The Python file contains the URLShortenerApp class that implements the URL shortening service, while the HTML file provides the user interface for interacting with the service.
 
-The URLShortenerApp class contains methods for creating, updating, and deleting short URLs, as well as utility methods for validating URLs, generating unique identifiers, and checking for collisions between identifiers. The class also sets up the necessary Flask routes and provides a method for running the Flask application.
+The URLShortenerApp class contains methods for creating, updating, and deleting short URLs, as well as utility methods for validating URLs, generating unique identifiers, searching for URIs, and checking for collisions between identifiers. The class also sets up the necessary Flask routes and provides a method for running the Flask application.
 
 ### Requirements
 * Python 3.8.8
