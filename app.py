@@ -50,6 +50,8 @@ class URLShortenerApp:
         self.app.add_url_rule('/keys', 'get_all_keys', self.get_all_keys, methods=['GET'])
         self.app.add_url_rule('/', 'create_short_url', self.create_short_url, methods=['POST'])
         self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
+        self.app.add_url_rule('/search/<string:uri>', 'search_uri', self.search_uri, methods=['GET'])
+
 
     def redirect_url(self, id):
 
@@ -144,6 +146,26 @@ class URLShortenerApp:
         if unique_id in self.url_data:
             return f"URL already exists or collision detected for unique ID '{unique_id}' "
         return None
+    
+    def search_uri(self, uri):
+
+        """
+        Search for the given URI in the url_data dictionary.
+        Args:
+            uri (str): The URI to search for.
+        Returns:
+            response (json): A JSON response containing the original URL, shortened URI, and timestamp if found,
+                             an error message otherwise.
+        """
+
+        if uri in self.url_data:
+            original_url = self.url_data[uri]['url']
+            shortened_url = f"{BASE_URL}/{uri}"
+            timestamp = self.url_data[uri]['created_at']
+            return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp})
+        else:
+            return jsonify({'error': 'URI not found'}), 404
+
 
     def update_url(self, id):
 
