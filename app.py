@@ -15,6 +15,9 @@ uri_length = 8
 # Set the range of max_attempts to create a unique ID
 max_attempts = 100
 
+# Set the longest URL length
+INTERNET_MAX_PATH_LENGTH = 2048
+
 class URLShortenerApp:
 
     """
@@ -94,8 +97,8 @@ class URLShortenerApp:
             bool: True if the URL is valid, False otherwise.
         """
 
-        # Check for URL length (e.g., not more than 1000 characters)
-        if len(url) > 1000:
+        # Check for URL length (e.g., not more than 2048 characters)
+        if len(url) > INTERNET_MAX_PATH_LENGTH:
             return False
 
         regex = re.compile(
