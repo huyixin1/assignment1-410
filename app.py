@@ -64,7 +64,7 @@ class URLShortenerApp:
         """
 
         if id in self.url_data:
-            return redirect(self.url_data[id]['url'])
+            return redirect(self.url_data[id]['url']), 301
         else:
             return jsonify({"error": "URL not found"}), 404
 
@@ -87,7 +87,7 @@ class URLShortenerApp:
             for key in self.url_data
         ]
         short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
-        return render_template('index.html', short_urls=short_urls)
+        return render_template('index.html', short_urls=short_urls), 200
 
     def is_valid_url(self, url):
 
@@ -164,7 +164,7 @@ class URLShortenerApp:
             original_url = self.url_data[uri]['url']
             shortened_url = f"{BASE_URL}/{uri}"
             timestamp = self.url_data[uri]['created_at']
-            return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp}), 200
+            return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp})
         else:
             return jsonify({'error': 'URI not found'}), 404
 
@@ -219,7 +219,7 @@ class URLShortenerApp:
         if len(self.url_data.keys()) == 0:
             return "No URL identifiers found.", 404
         else:
-            return jsonify(list(self.url_data.keys())), 301
+            return jsonify(list(self.url_data.keys())), 200
 
 
     def create_short_url(self):
