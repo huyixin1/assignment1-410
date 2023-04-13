@@ -10,10 +10,13 @@ from urllib.parse import urlparse
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 
 # Set the length of the unique ID to use for shortened URLs
-uri_length = 8
+URI_LENGTH = 8
 
 # Set the range of max_attempts to create a unique ID
-max_attempts = 100
+MAX_ATTEMPTS = 100
+
+# Set the max URL length
+INTERNET_MAX_PATH_LENGTH = 2048
 
 class URLShortenerApp:
 
@@ -47,6 +50,7 @@ class URLShortenerApp:
         self.app.add_url_rule('/keys', 'get_all_keys', self.get_all_keys, methods=['GET'])
         self.app.add_url_rule('/', 'create_short_url', self.create_short_url, methods=['POST'])
         self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
+        self.app.add_url_rule('/search/<string:uri>', 'search_uri', self.search_uri, methods=['GET'])
 
     def redirect_url(self, id):
 
@@ -60,16 +64,17 @@ class URLShortenerApp:
         """
 
         if id in self.url_data:
-            return redirect(self.url_data[id]['url'])
+            return redirect(self.url_data[id]['url']), 301
         else:
             return jsonify({"error": "URL not found"}), 404
 
     def serve_index(self):
 
         """
-        Retrieve all stored URLs.
+        Retrieve all stored URLs and their corresponding data from the url_data dictionary and generates a list of dictionaries. 
+        Sort the list of dictionaries by the timestamp of creation in descending order.
         Returns:
-            response (json): A JSON response containing a dictionary of all URLs.
+            response: A rendered HTML template containing the sorted list of URLs
         """
 
         short_urls = [{
@@ -82,7 +87,7 @@ class URLShortenerApp:
             for key in self.url_data
         ]
         short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
-        return render_template('index.html', short_urls=short_urls)
+        return render_template('index.html', short_urls=short_urls), 200
 
     def is_valid_url(self, url):
 
@@ -94,12 +99,13 @@ class URLShortenerApp:
             bool: True if the URL is valid, False otherwise.
         """
 
-        # Check for URL length (e.g., not more than 1000 characters)
-        if len(url) > 1000:
+        # Check for URL length
+        if len(url) > INTERNET_MAX_PATH_LENGTH:
             return False
 
         regex = re.compile(
             r'^https?://'  # http:// or https://
+            r'(?:www\.)?'  # www.
             r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain
             r'localhost|'  # localhost
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or IP
@@ -109,10 +115,11 @@ class URLShortenerApp:
         # Check for special characters not allowed in URLs
         return False if re.search(r'[<>]', url) else bool(re.match(regex, url))
 
-    def generate_unique_id(self, uri_length=uri_length, max_attempts=max_attempts):
+    def generate_unique_id(self, uri_length=URI_LENGTH, max_attempts=MAX_ATTEMPTS):
 
         """
-        Generate a unique identifier using a combination of ASCII letters and digits. Raise an error if the max_attempts is reached.
+        Generate a unique identifier using a combination of ASCII letters and digits. 
+        Raise an error if the max_attempts is reached.
         Args:
             length (int): The length of the unique identifier.
         Returns:
@@ -122,7 +129,7 @@ class URLShortenerApp:
         attempts = 0
         chars = string.ascii_letters + string.digits
         while attempts < max_attempts:
-            unique_id = ''.join(random.choices(chars, k=uri_length))
+            unique_id = ''.join(random.choices(chars, k=URI_LENGTH))
             if unique_id not in self.url_data:
                 return unique_id
             attempts += 1
@@ -131,7 +138,7 @@ class URLShortenerApp:
     def check_collision(self, unique_id):
 
         """
-        Check for collisions between unique IDs.
+        Check for collisions between unique IDs and raise error if duplicate is detected.
         Args:
             unique_id (str): The unique ID to check for collisions.
         Returns:
@@ -141,6 +148,26 @@ class URLShortenerApp:
         if unique_id in self.url_data:
             return f"URL already exists or collision detected for unique ID '{unique_id}' "
         return None
+    
+    def search_uri(self, uri):
+
+        """
+        Search for the given URI in the url_data dictionary.
+        Args:
+            uri (str): The URI to search for.
+        Returns:
+            response (json): A JSON response containing the original URL, shortened URI, and timestamp if found,
+                             an error message otherwise.
+        """
+
+        if uri in self.url_data:
+            original_url = self.url_data[uri]['url']
+            shortened_url = f"{BASE_URL}/{uri}"
+            timestamp = self.url_data[uri]['created_at']
+            return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp}), 200
+        else:
+            return jsonify({'error': 'URI not found'}), 404
+
 
     def update_url(self, id):
 
@@ -166,18 +193,17 @@ class URLShortenerApp:
             return jsonify({'error': 'Invalid URL'}), 400
 
     def delete_url(self, id):
-
         """
         Delete the URL associated with the given ID.
         Args:
             id (str): The ID of the URL to delete.
         Returns:
-            response (json): A JSON response containing a message or error.
+            response: An HTTP response with a status code.
         """
 
         if id in self.url_data:
             del self.url_data[id]
-            return jsonify({'message': 'Deleted'}), 200
+            return '', 204
         else:
             return jsonify({'error': 'Not Found'}), 404
 
@@ -189,12 +215,17 @@ class URLShortenerApp:
             response (json): A JSON response containing a list of URL identifiers.
         """
 
-        return jsonify(list(self.url_data.keys())), 200
+        if len(self.url_data.keys()) == 0:
+            return "No URL identifiers found.", 404
+        else:
+            return jsonify(list(self.url_data.keys())), 200
+
 
     def create_short_url(self):
 
         """
-        Create a short URL for the given long URL. If the URL already exists in the url_data dictionary, return an error message.
+        Create a short URL for the given long URL. 
+        If the URL already exists in the url_data dictionary, return an error message.
         
         Returns:
             response (json): A JSON response containing the short URL identifier, an error message if the URL already exists,
@@ -217,14 +248,16 @@ class URLShortenerApp:
             return jsonify({'error': 'URL already exists', 'short_url': short_url, 'generated_uri': generated_uri}), 409
 
         try:
-            unique_id = self.generate_unique_id(uri_length)
+            unique_id = self.generate_unique_id(URI_LENGTH)
             self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             short_url = f"{BASE_URL}/{unique_id}"
             generated_uri = unique_id
 
             return jsonify({'short_url': short_url, 'generated_uri': generated_uri}), 201
         except ValueError as e:
-            return jsonify({'error': str(e)}), 500
+            error_msg = f"An internal server error occurred while generating a unique identifier: {str(e)}. Function: create_short_url(). Module: url_shortener.py"
+            return jsonify({'error': error_msg}), 500
+
 
     def unsupported_delete(self):
 
