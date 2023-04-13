@@ -204,7 +204,7 @@ class URLShortenerApp:
 
         if id in self.url_data:
             del self.url_data[id]
-            return jsonify({'message': 'Deleted'}), 200
+            return jsonify({'message': 'Deleted'}), 204
         else:
             return jsonify({'error': 'Not Found'}), 404
 
