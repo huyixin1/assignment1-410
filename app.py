@@ -71,9 +71,10 @@ class URLShortenerApp:
     def serve_index(self):
 
         """
-        Retrieve all stored URLs.
+        Retrieve all stored URLs and their corresponding data from the url_data dictionary and generates a list of dictionaries. 
+        Sort the list of dictionaries by the timestamp of creation in descending order.
         Returns:
-            response (json): A JSON response containing a dictionary of all URLs.
+            response: A rendered HTML template containing the sorted list of URLs
         """
 
         short_urls = [{
@@ -104,6 +105,7 @@ class URLShortenerApp:
 
         regex = re.compile(
             r'^https?://'  # http:// or https://
+            r'(?:www\.)?'  # optional www.
             r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain
             r'localhost|'  # localhost
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or IP
@@ -116,7 +118,8 @@ class URLShortenerApp:
     def generate_unique_id(self, uri_length=URI_LENGTH, max_attempts=MAX_ATTEMPTS):
 
         """
-        Generate a unique identifier using a combination of ASCII letters and digits. Raise an error if the max_attempts is reached.
+        Generate a unique identifier using a combination of ASCII letters and digits. 
+        Raise an error if the max_attempts is reached.
         Args:
             length (int): The length of the unique identifier.
         Returns:
@@ -135,7 +138,7 @@ class URLShortenerApp:
     def check_collision(self, unique_id):
 
         """
-        Check for collisions between unique IDs.
+        Check for collisions between unique IDs and raise error if duplicate is detected.
         Args:
             unique_id (str): The unique ID to check for collisions.
         Returns:
@@ -218,7 +221,8 @@ class URLShortenerApp:
     def create_short_url(self):
 
         """
-        Create a short URL for the given long URL. If the URL already exists in the url_data dictionary, return an error message.
+        Create a short URL for the given long URL. 
+        If the URL already exists in the url_data dictionary, return an error message.
         
         Returns:
             response (json): A JSON response containing the short URL identifier, an error message if the URL already exists,
