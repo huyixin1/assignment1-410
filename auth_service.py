@@ -4,13 +4,15 @@ import hashlib
 import jwt
 from datetime import datetime, timedelta
 from datetime import timezone
+import os
+
 
 # JWT Secret
 JWT_SECRET = 'your_secret_key_here'
+# JWT_SECRET = os.environ.get('JWT_SECRET', 'your_default_secret_key_here')
 
 # User Database
 USER_DATA = {}
-
 
 class AuthService:
 
@@ -19,7 +21,7 @@ class AuthService:
     """
 
     def __init__(self, url_shortener_app):
-        
+
         """
         Initialize the AuthService instance and set up the routes.
         """
