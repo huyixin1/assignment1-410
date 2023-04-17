@@ -5,6 +5,7 @@ import random
 from datetime import datetime
 import os
 from urllib.parse import urlparse
+from auth_service import AuthService
 
 # Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
@@ -35,6 +36,7 @@ class URLShortenerApp:
 
         self.url_data = {}
         self.app = Flask(__name__)
+        self.app.before_request(self.check_jwt) # add the check_jwt method to be called before each request
         self.setup_routes()
 
     def setup_routes(self):
@@ -268,6 +270,22 @@ class URLShortenerApp:
         """
 
         return jsonify({'error': 'Method not supported'}), 404
+    
+    def check_jwt(self):
+
+        """
+        Check if the JWT token in the request's Authorization header is valid.
+        If the token is invalid or not provided, return a JSON error response.
+        """
+
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({'error': 'Missing Authorization header'}), 401
+
+        token = auth_header.split(' ')[-1]
+        payload = self.auth_service.validate_jwt(token)
+        if not payload:
+            return jsonify({'error': 'Invalid or expired token'}), 401
 
     def run(self, *args, **kwargs):
 
@@ -282,4 +300,6 @@ class URLShortenerApp:
 
 if __name__ == '__main__':
     url_shortener_app = URLShortenerApp()
-    url_shortener_app.run()
+    auth_service = AuthService(url_shortener_app)
+    auth_service.run(debug=True)
+
