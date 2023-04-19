@@ -89,7 +89,8 @@ class URLShortenerApp:
             for key in self.url_data
         ]
         short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
-        return render_template('index.html', short_urls=short_urls), 200
+        return short_urls, 200
+        #return render_template('index.html', short_urls=short_urls), 200
 
     def is_valid_url(self, url):
 
@@ -296,10 +297,10 @@ class URLShortenerApp:
             **kwargs: Arbitrary keyword arguments.
         """
 
-        self.app.run(debug=True, *args, **kwargs)
+        self.app.run(debug=True, port=5000, *args, **kwargs)
 
 if __name__ == '__main__':
     url_shortener_app = URLShortenerApp()
     auth_service = AuthService(url_shortener_app)
-    auth_service.run(debug=True)
+    auth_service.run()
 

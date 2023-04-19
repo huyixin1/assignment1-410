@@ -5,10 +5,11 @@ import jwt
 from datetime import datetime, timedelta
 from datetime import timezone
 import os
+import secrets
 
 
 # JWT Secret
-JWT_SECRET = 'your_secret_key_here'
+JWT_SECRET = secrets.token_urlsafe(64)
 # JWT_SECRET = os.environ.get('JWT_SECRET', 'your_default_secret_key_here')
 
 # User Database
@@ -16,16 +17,7 @@ USER_DATA = {}
 
 class AuthService:
 
-    """
-    A simple authentication service for managing user registration, login, and JWT generation.
-    """
-
     def __init__(self, url_shortener_app):
-
-        """
-        Initialize the AuthService instance and set up the routes.
-        """
-
         self.url_shortener_app = url_shortener_app
         self.app = Flask(__name__)
         self.setup_routes()
@@ -95,19 +87,10 @@ class AuthService:
         return jsonify({'access_token': token}), 200
     
     def validate_jwt(self, token):
-
-        """
-        Validate the JWT token and return the payload if valid.
-        Args:
-            token (str): The JWT token to validate.
-        Returns:
-            dict: The payload of the JWT token if valid, None otherwise.
-        """
-
         try:
             return jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
         except jwt.InvalidTokenError:
             return None
 
     def run(self, *args, **kwargs):
-        self.app.run(*args, **kwargs)
+        self.app.run(debug=True, port=5001, *args, **kwargs)
