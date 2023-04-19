@@ -24,6 +24,7 @@ class URLShortenerApp:
 
     """
     A URL shortening service implemented as a Flask application.
+    
     Attributes:
         url_data (dict): A dictionary storing unique IDs and their corresponding URLs.
         app (Flask): A Flask application instance.
@@ -218,6 +219,7 @@ class URLShortenerApp:
             return jsonify({'error': 'Invalid URL'}), 400
 
     def delete_url(self, id):
+
         """
         Delete the URL associated with the given ID.
         Args:
