@@ -46,24 +46,6 @@ class AuthService:
 
         return '', 201
 
-    def update_password(self):
-        data = request.get_json()
-        if data is None:
-            return jsonify({'error': 'Invalid JSON'}), 400
-        username = data.get('username')
-        old_password = data.get('old_password')
-        new_password = data.get('new_password')
-
-        if username is None or old_password is None or new_password is None:
-            return jsonify({'error': 'Username, old password, and new password are required'}), 400
-
-        if username not in USER_DATA or USER_DATA[username]['password'] != hashlib.sha256(old_password.encode('utf-8')).hexdigest():
-            return jsonify({'error': 'Invalid credentials'}), 403
-
-        USER_DATA[username]['password'] = hashlib.sha256(new_password.encode('utf-8')).hexdigest()
-
-        return '', 200
-
     def login(self):
         data = request.get_json()
         if data is None:
@@ -86,6 +68,24 @@ class AuthService:
 
         return jsonify({'access_token': token}), 200
     
+    def update_password(self):
+        data = request.get_json()
+        if data is None:
+            return jsonify({'error': 'Invalid JSON'}), 400
+        username = data.get('username')
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+
+        if username is None or old_password is None or new_password is None:
+            return jsonify({'error': 'Username, old password, and new password are required'}), 400
+
+        if username not in USER_DATA or USER_DATA[username]['password'] != hashlib.sha256(old_password.encode('utf-8')).hexdigest():
+            return jsonify({'error': 'Invalid credentials'}), 403
+
+        USER_DATA[username]['password'] = hashlib.sha256(new_password.encode('utf-8')).hexdigest()
+
+        return '', 200
+    
     def validate_jwt(self, token):
         try:
             return jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
@@ -93,4 +93,4 @@ class AuthService:
             return None
 
     def run(self, *args, **kwargs):
-        self.app.run(debug=True, port=5001, *args, **kwargs)
+        self.app.run(*args, **kwargs)

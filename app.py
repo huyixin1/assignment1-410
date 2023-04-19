@@ -6,6 +6,7 @@ from datetime import datetime
 import os
 from urllib.parse import urlparse
 from auth_service import AuthService
+from threading import Thread
 
 # Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
@@ -28,13 +29,14 @@ class URLShortenerApp:
         app (Flask): A Flask application instance.
     """
 
-    def __init__(self):
+    def __init__(self, auth_service):
 
         """
         Initialize the URLShortenerApp instance and set up the routes.
         """
 
         self.url_data = {}
+        self.auth_service = auth_service
         self.app = Flask(__name__)
         self.app.before_request(self.check_jwt) # add the check_jwt method to be called before each request
         self.setup_routes()
@@ -70,27 +72,47 @@ class URLShortenerApp:
         else:
             return jsonify({"error": "URL not found"}), 404
 
+    # def serve_index(self):
+
+    #     """
+    #     Retrieve all stored URLs and their corresponding data from the url_data dictionary and generates a list of dictionaries. 
+    #     Sort the list of dictionaries by the timestamp of creation in descending order.
+    #     Returns:
+    #         response: A rendered HTML template containing the sorted list of URLs
+    #     """
+
+    #     short_urls = [{
+    #         "id": key,
+    #         "url": f"{BASE_URL}/{key}",
+    #         "created_at": self.url_data[key]["created_at"],
+    #         "original_url": self.url_data[key]["url"],
+    #         "generated_uri": key
+    #         }
+    #         for key in self.url_data
+    #     ]
+    #     short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
+    #     return render_template('index.html', short_urls=short_urls), 200
+
     def serve_index(self):
 
         """
         Retrieve all stored URLs and their corresponding data from the url_data dictionary and generates a list of dictionaries. 
         Sort the list of dictionaries by the timestamp of creation in descending order.
         Returns:
-            response: A rendered HTML template containing the sorted list of URLs
+            response (json): A JSON response containing the sorted list of URLs
         """
 
         short_urls = [{
-            "id": key,
+            "generated_uri": key,
             "url": f"{BASE_URL}/{key}",
             "created_at": self.url_data[key]["created_at"],
-            "original_url": self.url_data[key]["url"],
-            "generated_uri": key
+            "original_url": self.url_data[key]["url"]
             }
             for key in self.url_data
         ]
         short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
-        return short_urls, 200
-        #return render_template('index.html', short_urls=short_urls), 200
+        
+        return jsonify(short_urls), 200
 
     def is_valid_url(self, url):
 
@@ -281,11 +303,15 @@ class URLShortenerApp:
 
         auth_header = request.headers.get('Authorization')
         if not auth_header:
+            print("Missing Authorization header")
             return jsonify({'error': 'Missing Authorization header'}), 401
 
         token = auth_header.split(' ')[-1]
+        print(f"Token: {token}")
         payload = self.auth_service.validate_jwt(token)
+        print(f"Payload: {payload}")
         if not payload:
+            print("Invalid or expired token")
             return jsonify({'error': 'Invalid or expired token'}), 401
 
     def run(self, *args, **kwargs):
@@ -297,10 +323,21 @@ class URLShortenerApp:
             **kwargs: Arbitrary keyword arguments.
         """
 
-        self.app.run(debug=True, port=5000, *args, **kwargs)
+        self.app.run(*args, **kwargs)
 
 if __name__ == '__main__':
-    url_shortener_app = URLShortenerApp()
-    auth_service = AuthService(url_shortener_app)
-    auth_service.run()
+    from threading import Thread
 
+    url_shortener_app = URLShortenerApp(None)  # Initialize URLShortenerApp with None as auth_service
+    auth_service = AuthService(url_shortener_app)  # Initialize AuthService with url_shortener_app instance
+    url_shortener_app.auth_service = auth_service  # Update auth_service in url_shortener_app
+
+    # Start both servers in separate threads
+    app_thread = Thread(target=url_shortener_app.run, kwargs={'debug': True, 'port': 5000, 'use_reloader': False})
+    auth_thread = Thread(target=auth_service.run, kwargs={'debug': True, 'port': 5001, 'use_reloader': False})
+
+    app_thread.start()
+    auth_thread.start()
+
+    app_thread.join()
+    auth_thread.join()
