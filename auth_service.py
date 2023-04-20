@@ -147,8 +147,6 @@ class AuthService:
             Tuple: A tuple containing the HTTP response and status code.
         """
 
-        print(f"Request data: {data}")
-
         data = request.get_json()
         username = data.get('username')
         old_password = data.get('old_password')
