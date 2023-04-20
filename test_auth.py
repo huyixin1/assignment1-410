@@ -56,7 +56,7 @@ class TestAuthService(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Test with an invalid token
-        headers = {'Authorization': f'Bearer invalid_token'}
+        headers = {'Authorization': 'Bearer invalid_token'}
         response = self.client.put('/users', json={'username': 'test_user', 'old_password': 'test_password', 'new_password': 'new_password'}, headers=headers)
         self.assertEqual(response.status_code, 401)
 
