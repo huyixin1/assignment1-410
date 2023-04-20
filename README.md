@@ -42,7 +42,6 @@ pip install -r requirements.txt
 ```console
 python app.py
 ```
-7. Open your browser and navigate to http://localhost:5000 to access the URL shortener. Now you should be able to interact with the URL shortener application.
 
 ### Testing
 The URL shortener application includes a test class that covers most of the core functionalities. The tests are consists out of three Python files: test_app.py (12 tests), test_auth.py (4 tests), test_helpers.py (5 tests). The tests cover, among others, the following functionalities:
