@@ -41,8 +41,8 @@ class URLShortenerApp:
         self.app.before_request(self.check_jwt) # add the check_jwt method to be called before each request
         self.setup_routes()
 
-    def is_authorized(self, payload):
-        return payload.get('role') == 'admin'
+    # def is_authorized(self, payload):
+    #     return payload.get('role') == 'admin'
 
     def check_jwt(self):
 
@@ -61,17 +61,17 @@ class URLShortenerApp:
             return jsonify({'error': 'Missing Authorization header'}), 401
 
         token = auth_header.split(' ')[-1]
-        print(f"Token: {token}")
         payload = self.auth_service.validate_jwt(token)
-        print(f"Payload: {payload}")
+        # print(f"Token: {token}")
+        # print(f"Payload: {payload}")
         if not payload:
             print("Invalid or expired token")
             return jsonify({'error': 'Invalid or expired token'}), 401
         
-        # # Check if the user is authorized to perform the action
-        # if not self.is_authorized(payload):
-        #     print("Forbidden")
-        #     return jsonify({'error': 'Forbidden'}), 403
+        # Check if the user is authorized to perform the action
+        if not self.is_authorized(payload):
+            print("Forbidden")
+            return jsonify({'error': 'Forbidden'}), 403
 
     def setup_routes(self):
 
