@@ -109,6 +109,10 @@ class AuthService:
         When a user logs in, their provided password is hashed, and the resulting hash value is compared with the stored hash value for the corresponding username. 
         If the hash values match, the user is authenticated.
 
+        The `payload` dictionary includes a `datetime` object with an expiration time for the token that is one day in the future. 
+        The `timezone` module is used to create a `timezone.utc` object that represents the (UTC) timezone, and the `timedelta` function is used to add one day to the current time to generate the expiration time for the token. 
+        This ensures that the token expires after a certain amount of time, providing an additional layer of security to the authentication process
+
         Returns:
             Tuple: A tuple containing the HTTP response and status code.
         """
