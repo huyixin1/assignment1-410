@@ -63,23 +63,29 @@ class AuthService:
         self.app.add_url_rule('/users', 'create_user', self.create_user, methods=['POST'])
         self.app.add_url_rule('/users', 'update_password', self.update_password, methods=['PUT'])
         self.app.add_url_rule('/users/login', 'login', self.login, methods=['POST'])
+        self.app.add_url_rule('/admin', 'create_admin', self.create_admin, methods=['POST'])
 
-    def create_user(self):
+    def create_user(self, is_admin=False):
 
         """
         Creates a new user with the provided username and password. 
         When a user creates an account, the password they provide is hashed and stored in a dictionary to be later used for authentication. 
+
+        Args:
+            is_admin (bool, optional): Whether to create an admin user. Defaults to False.
 
         Returns:
             Tuple: A tuple containing the HTTP response and status code.
         """
 
         data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
 
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
+
+        username = data.get('username')
+        password = data.get('password')
+        role = data.get('role')
 
         if username is None:
             return jsonify({'error': 'Username is required'}), 400
@@ -91,10 +97,17 @@ class AuthService:
             return jsonify({'error': 'Username already exists'}), 409
 
         USER_DATA[username] = {
-            'password': hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest()
+            'password': hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest(),
+            'role': 'admin' if is_admin else 'user'
         }
 
         return '', 201
+    
+    def create_admin(self):
+        return self.create_user(is_admin=True)
+    
+    def get_user_role(self, username):
+        return USER_DATA.get(username, {}).get('role', None)
 
     def login(self):
 
@@ -108,11 +121,12 @@ class AuthService:
         """
 
         data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
 
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
+
+        username = data.get('username')
+        password = data.get('password')
 
         if username is None:
             return jsonify({'error': 'Username is required'}), 400
@@ -132,6 +146,7 @@ class AuthService:
         payload = {
             'sub': username,
             'exp': datetime.now(timezone.utc) + timedelta(days=1),
+            'permissions': ['update_url', 'delete_url', 'serve_index', 'create_short_url', 'unsupported_delete'] if USER_DATA[username]['role'] == 'admin' else []
         }
         token = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
 
@@ -148,12 +163,13 @@ class AuthService:
         """
 
         data = request.get_json()
-        username = data.get('username')
-        old_password = data.get('old_password')
-        new_password = data.get('new_password')
 
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
+
+        username = data.get('username')
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
 
         if username is None:
             return jsonify({'error': 'Username is required'}), 400

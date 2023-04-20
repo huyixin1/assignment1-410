@@ -6,6 +6,7 @@ from datetime import datetime
 import os
 from auth_service import AuthService
 from threading import Thread
+from functools import wraps
 
 # Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
@@ -41,9 +42,6 @@ class URLShortenerApp:
         self.app.before_request(self.check_jwt) # add the check_jwt method to be called before each request
         self.setup_routes()
 
-    # def is_authorized(self, payload):
-    #     return payload.get('role') == 'admin'
-
     def check_jwt(self):
 
         """
@@ -62,16 +60,18 @@ class URLShortenerApp:
 
         token = auth_header.split(' ')[-1]
         payload = self.auth_service.validate_jwt(token)
-        # print(f"Token: {token}")
-        # print(f"Payload: {payload}")
         if not payload:
             print("Invalid or expired token")
             return jsonify({'error': 'Invalid or expired token'}), 401
-        
-        # Check if the user is authorized to perform the action
-        # if not self.is_authorized(payload):
-        #     print("Forbidden")
-        #     return jsonify({'error': 'Forbidden'}), 403
+
+        # Get the user's role
+        username = payload.get('sub')
+        user_role = self.auth_service.get_user_role(username)
+
+        # Check for the request method and permission
+        if request.method in ['PUT', 'DELETE', 'POST'] and user_role != 'admin':
+            print("Forbidden: Only admin can perform this operation")
+            return jsonify({'error': 'Forbidden: Only admin can perform this operation'}), 403
 
     def setup_routes(self):
 
@@ -87,6 +87,26 @@ class URLShortenerApp:
         self.app.add_url_rule('/', 'create_short_url', self.create_short_url, methods=['POST'])
         self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
         self.app.add_url_rule('/search/<string:uri>', 'search_uri', self.search_uri, methods=['GET'])
+
+    def require_permission(permission):
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(self, *args, **kwargs):
+                auth_header = request.headers.get('Authorization')
+                if auth_header is None:
+                    return jsonify({'error': 'Missing Authorization header'}), 401
+
+                token = auth_header.split(' ')[-1]
+                decoded_payload = self.auth_service.validate_jwt(token)
+                if decoded_payload is None:
+                    return jsonify({'error': 'Invalid JWT token'}), 401
+
+                if permission not in decoded_payload['permissions']:
+                    return jsonify({'error': f'Forbidden: Only admin can perform this operation'}), 403
+
+                return f(self, *args, **kwargs)
+            return decorated_function
+        return decorator
 
     def redirect_url(self, id):
 
@@ -126,6 +146,7 @@ class URLShortenerApp:
     #     short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
     #     return render_template('index.html', short_urls=short_urls), 200
 
+    @require_permission('serve_index')
     def serve_index(self):
 
         """
@@ -226,7 +247,7 @@ class URLShortenerApp:
         else:
             return jsonify({'error': 'URI not found'}), 404
 
-
+    @require_permission('update_url')
     def update_url(self, id):
 
         """
@@ -250,6 +271,7 @@ class URLShortenerApp:
         else:
             return jsonify({'error': 'Invalid URL'}), 400
 
+    @require_permission('delete_url')
     def delete_url(self, id):
 
         """
@@ -279,7 +301,7 @@ class URLShortenerApp:
         else:
             return jsonify(list(self.url_data.keys())), 200
 
-
+    @require_permission('create_short_url')
     def create_short_url(self):
 
         """
@@ -317,7 +339,7 @@ class URLShortenerApp:
             error_msg = f"An internal server error occurred while generating a unique identifier: {str(e)}. Function: create_short_url(). Module: url_shortener.py"
             return jsonify({'error': error_msg}), 500
 
-
+    @require_permission('unsupported_delete')
     def unsupported_delete(self):
 
         """
