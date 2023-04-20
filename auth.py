@@ -38,6 +38,19 @@ class AuthService:
         self.setup_routes()
 
     def require_auth(f):
+
+        """
+        A decorator function that provides authentication to the wrapped function.
+        It checks the presence of the 'Authorization' header in the incoming request, 
+        and if present, it attempts to decode and validate the JWT token in the header.
+        
+        Args:
+            f (function): The function to be wrapped with authentication.
+
+        Returns:
+            function: The decorated function that enforces authentication.
+        """
+
         @wraps(f)
         def decorated_function(self, *args, decoded_payload=None, **kwargs):
             auth_header = request.headers.get('Authorization')

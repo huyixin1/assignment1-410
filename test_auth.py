@@ -6,13 +6,32 @@ import hashlib
 
 class TestAuthService(unittest.TestCase):
 
+    """
+    Test class for the AuthService class.
+
+    Each method tests a specific method or functionality of the AuthService class.
+    """
+
     def setUp(self):
+
+        """
+        Set up the test environment by creating an instance of the Flask app, and setting it to test mode.
+        Also clears the USER_DATA dictionary for the update_password method.
+        """
+
         self.app = AuthService(Flask(__name__)).app
         self.app.testing = True
         self.client = self.app.test_client()
         USER_DATA.clear()
 
     def test_create_user(self):
+
+        """
+        Test the create_user method of the AuthService class.
+
+        Assert that the method returns a 201 status code and that the hashed password is stored in USER_DATA.
+        """
+
         response = self.client.post('/users', json={'username': 'test_user', 'password': 'test_password'})
         self.assertEqual(response.status_code, 201)
 
@@ -20,6 +39,13 @@ class TestAuthService(unittest.TestCase):
         self.assertEqual(USER_DATA['test_user']['password'], hashed_password)
 
     def test_login(self):
+
+        """
+        Test the login method of the AuthService class.
+
+        Assert that the method returns a 200 status code and that an access_token is returned in the response data.
+        """
+
         # Create a user for testing login
         self.client.post('/users', json={'username': 'test_user', 'password': 'test_password'})
 
@@ -28,6 +54,13 @@ class TestAuthService(unittest.TestCase):
         self.assertIn('access_token', json.loads(response.data))
 
     def test_update_password(self):
+
+        """
+        Test the update_password method of the AuthService class.
+
+        Assert that the method returns a 200 status code and that the password is updated in USER_DATA.
+        """
+
         # Create a user for testing login
         response = self.client.post('/users', json={'username': 'test_user', 'password': 'test_password'})
         response = self.client.post('/users/login', json={'username': 'test_user', 'password': 'test_password'})
@@ -45,6 +78,14 @@ class TestAuthService(unittest.TestCase):
         self.assertEqual(USER_DATA['test_user']['password'], new_hashed_password)
 
     def test_require_auth(self):
+
+        """
+        Test the require_auth decorator of the AuthService class.
+
+        Test with a valid token, an invalid token, and a missing token. Assert that the decorator returns the
+        expected status code in each case.
+        """
+
         # Create a user and log in
         self.client.post('/users', json={'username': 'test_user', 'password': 'test_password'})
         login_response = self.client.post('/users/login', json={'username': 'test_user', 'password': 'test_password'})

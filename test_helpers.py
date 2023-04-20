@@ -13,7 +13,18 @@ INTERNET_MAX_PATH_LENGTH = 2048
 
 class TestHelperFunctions(unittest.TestCase):
 
+    """
+    A test class for the helper functions in the URL shortener app.
+
+    Each method tests a specific method or functionality of the Helper Functions.
+    """
+
     def test_is_valid_url(self):
+
+        """
+        Test if is_valid_url function works correctly for valid and invalid URLs.
+        """
+
         valid_urls = [
             "https://www.example.com",
             "http://example.org",
@@ -40,11 +51,21 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertTrue(is_valid_url(long_domain))
 
     def test_generate_unique_id_length(self):
+
+        """
+        Test if generate_unique_id function generates a unique ID with the correct length.
+        """
+
         url_data = set()
         unique_id = generate_unique_id(url_data)
         self.assertEqual(len(unique_id), URI_LENGTH, f"Generated ID should have a length of {URI_LENGTH}")
 
     def test_generate_unique_id_content(self):
+
+        """
+        Test if generate_unique_id function generates a unique ID with only ASCII letters and digits.
+        """
+
         url_data = set()
         unique_id = generate_unique_id(url_data)
         chars = string.ascii_letters + string.digits
@@ -52,6 +73,11 @@ class TestHelperFunctions(unittest.TestCase):
             self.assertIn(char, chars, "Generated ID should only contain ASCII letters and digits.")
 
     def test_sorted_urls(self):
+
+        """
+        Test if sorted function sorts short URLs correctly.
+        """
+
         short_urls = [
             {"original_url": "https://www.example3.com", "generated_uri": "AAAAAAA3", "created_at": "2023-04-12 12:00:00"},
             {"original_url": "https://www.example2.com", "generated_uri": "AAAAAAA2", "created_at": "2023-04-12 11:00:00"},
@@ -64,6 +90,11 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(sorted_urls[2]['original_url'], "https://www.example1.com")
 
     def test_is_valid_url_special_characters(self):
+
+        """
+        Test if is_valid_url function works correctly for URLs with special characters.
+        """
+
         self.assertFalse(is_valid_url('https://www.example.com/<script>alert("test")</script>'))
 
 

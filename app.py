@@ -67,6 +67,18 @@ class URLShortenerApp:
             return jsonify({'error': 'Invalid or expired token'}), 401
     
     def admin_required(f):
+
+        """"
+        A decorator that checks if the JWT token in the request's Authorization header has an admin role.
+        If the user is not an admin, return a JSON error response with a 403 status code.
+
+        Args:
+        f (function): The function to be decorated.
+
+        Returns:
+        decorated_function (function): The decorated function that checks for admin privileges.
+        """
+
         @wraps(f)
         def decorated_function(self, *args, **kwargs):
             auth_header = request.headers.get('Authorization')
