@@ -1,40 +1,34 @@
-from flask import Flask, request, jsonify, render_template, redirect
-import re
-import string
-import random
-from datetime import datetime
+from flask import Flask, request, jsonify, redirect
 import os
-from urllib.parse import urlparse
+from auth_service import AuthService
+from threading import Thread
+from functools import wraps
+from datetime import datetime
+from helpers import is_valid_url, generate_unique_id
 
 # Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
-
-# Set the length of the unique ID to use for shortened URLs
-URI_LENGTH = 8
-
-# Set the range of max_attempts to create a unique ID
-MAX_ATTEMPTS = 100
-
-# Set the max URL length
-INTERNET_MAX_PATH_LENGTH = 2048
 
 class URLShortenerApp:
 
     """
     A URL shortening service implemented as a Flask application.
+    
     Attributes:
         url_data (dict): A dictionary storing unique IDs and their corresponding URLs.
         app (Flask): A Flask application instance.
     """
 
-    def __init__(self):
+    def __init__(self, auth_service):
 
         """
         Initialize the URLShortenerApp instance and set up the routes.
         """
 
         self.url_data = {}
+        self.auth_service = auth_service
         self.app = Flask(__name__)
+        self.app.before_request(self.check_jwt) # add the check_jwt method to be called before each request
         self.setup_routes()
 
     def setup_routes(self):
@@ -52,6 +46,40 @@ class URLShortenerApp:
         self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
         self.app.add_url_rule('/search/<string:uri>', 'search_uri', self.search_uri, methods=['GET'])
 
+    def check_jwt(self):
+
+        """
+        Check if the JWT token in the request's Authorization header is valid.
+        If the token is invalid or not provided, return a JSON error response.
+
+        The check_jwt method is called before each request, 
+        ensuring that the JWT token is validated and returns the required 401 "unauthorized" 
+        or 403 "forbidden" status when necessary.
+        """
+
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            print("Missing Authorization header")
+            return jsonify({'error': 'Missing Authorization header'}), 401
+
+        token = auth_header.split(' ')[-1]
+        payload = self.auth_service.validate_jwt(token)
+        if not payload:
+            print("Invalid or expired token")
+            return jsonify({'error': 'Invalid or expired token'}), 401
+    
+    def admin_required(f):
+        @wraps(f)
+        def decorated_function(self, *args, **kwargs):
+            auth_header = request.headers.get('Authorization')
+            token = auth_header.split(' ')[-1]
+            payload = self.auth_service.validate_jwt(token)
+            if payload.get("role") != "admin":
+                print("Admin privileges required")
+                return jsonify({'error': 'Admin privileges required'}), 403
+            return f(self, *args, **kwargs)
+        return decorated_function
+
     def redirect_url(self, id):
 
         """
@@ -68,86 +96,27 @@ class URLShortenerApp:
         else:
             return jsonify({"error": "URL not found"}), 404
 
+    @admin_required
     def serve_index(self):
 
         """
         Retrieve all stored URLs and their corresponding data from the url_data dictionary and generates a list of dictionaries. 
         Sort the list of dictionaries by the timestamp of creation in descending order.
         Returns:
-            response: A rendered HTML template containing the sorted list of URLs
+            response (json): A JSON response containing the sorted list of URLs
         """
 
         short_urls = [{
-            "id": key,
+            "generated_uri": key,
             "url": f"{BASE_URL}/{key}",
             "created_at": self.url_data[key]["created_at"],
-            "original_url": self.url_data[key]["url"],
-            "generated_uri": key
+            "original_url": self.url_data[key]["url"]
             }
             for key in self.url_data
         ]
         short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
-        return render_template('index.html', short_urls=short_urls), 200
-
-    def is_valid_url(self, url):
-
-        """
-        Validate the given URL using a regular expression and check for URL length and special characters.
-        Args:
-            url (str): The URL to validate.
-        Returns:
-            bool: True if the URL is valid, False otherwise.
-        """
-
-        # Check for URL length
-        if len(url) > INTERNET_MAX_PATH_LENGTH:
-            return False
-
-        regex = re.compile(
-            r'^https?://'  # http:// or https://
-            r'(?:www\.)?'  # www.
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain
-            r'localhost|'  # localhost
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or IP
-            r'(?::\d+)?'  # optional port (number that follows the domain name or IP address and)
-            r'(?:/?|[/?]\S+)$', re.IGNORECASE) # optional path after domain name
-
-        # Check for special characters not allowed in URLs
-        return False if re.search(r'[<>]', url) else bool(re.match(regex, url))
-
-    def generate_unique_id(self, uri_length=URI_LENGTH, max_attempts=MAX_ATTEMPTS):
-
-        """
-        Generate a unique identifier using a combination of ASCII letters and digits. 
-        Raise an error if the max_attempts is reached.
-        Args:
-            length (int): The length of the unique identifier.
-        Returns:
-            str: A `length`-character unique identifier.
-        """
-
-        attempts = 0
-        chars = string.ascii_letters + string.digits
-        while attempts < max_attempts:
-            unique_id = ''.join(random.choices(chars, k=URI_LENGTH))
-            if unique_id not in self.url_data:
-                return unique_id
-            attempts += 1
-        raise ValueError("Exceeded maximum number of attempts to generate a unique ID.")
-    
-    def check_collision(self, unique_id):
-
-        """
-        Check for collisions between unique IDs and raise error if duplicate is detected.
-        Args:
-            unique_id (str): The unique ID to check for collisions.
-        Returns:
-            str: An error message if there is a collision, None otherwise.
-        """
-
-        if unique_id in self.url_data:
-            return f"URL already exists or collision detected for unique ID '{unique_id}' "
-        return None
+        
+        return jsonify(short_urls), 200
     
     def search_uri(self, uri):
 
@@ -167,8 +136,8 @@ class URLShortenerApp:
             return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp}), 200
         else:
             return jsonify({'error': 'URI not found'}), 404
-
-
+        
+    @admin_required
     def update_url(self, id):
 
         """
@@ -183,7 +152,7 @@ class URLShortenerApp:
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
         url = data.get('url')
-        if url is not None and self.is_valid_url(url):
+        if url is not None and is_valid_url(url):
             if id in self.url_data:
                 self.url_data[id] = {"url": url, "created_at": self.url_data[id]["created_at"]}
                 return jsonify({'message': 'Updated'}), 200
@@ -192,7 +161,9 @@ class URLShortenerApp:
         else:
             return jsonify({'error': 'Invalid URL'}), 400
 
+    @admin_required
     def delete_url(self, id):
+
         """
         Delete the URL associated with the given ID.
         Args:
@@ -220,7 +191,7 @@ class URLShortenerApp:
         else:
             return jsonify(list(self.url_data.keys())), 200
 
-
+    @admin_required
     def create_short_url(self):
 
         """
@@ -236,7 +207,7 @@ class URLShortenerApp:
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
         url = data.get('url')
-        if url is None or not self.is_valid_url(url):
+        if url is None or not is_valid_url(url):
             return jsonify({'error': 'Invalid URL'}), 400
 
         if existing_id := next(
@@ -248,7 +219,7 @@ class URLShortenerApp:
             return jsonify({'error': 'URL already exists', 'short_url': short_url, 'generated_uri': generated_uri}), 409
 
         try:
-            unique_id = self.generate_unique_id(URI_LENGTH)
+            unique_id = generate_unique_id(self.url_data)
             self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             short_url = f"{BASE_URL}/{unique_id}"
             generated_uri = unique_id
@@ -258,7 +229,7 @@ class URLShortenerApp:
             error_msg = f"An internal server error occurred while generating a unique identifier: {str(e)}. Function: create_short_url(). Module: url_shortener.py"
             return jsonify({'error': error_msg}), 500
 
-
+    @admin_required
     def unsupported_delete(self):
 
         """
@@ -278,8 +249,21 @@ class URLShortenerApp:
             **kwargs: Arbitrary keyword arguments.
         """
 
-        self.app.run(debug=True, *args, **kwargs)
+        self.app.run(*args, **kwargs)
 
 if __name__ == '__main__':
-    url_shortener_app = URLShortenerApp()
-    url_shortener_app.run()
+    from threading import Thread
+
+    url_shortener_app = URLShortenerApp(None)  # Initialize URLShortenerApp with None as auth_service
+    auth_service = AuthService(url_shortener_app)  # Initialize AuthService with url_shortener_app instance
+    url_shortener_app.auth_service = auth_service  # Update auth_service in url_shortener_app
+
+    # Start both servers in separate threads
+    app_thread = Thread(target=url_shortener_app.run, kwargs={'debug': True, 'port': 5000, 'use_reloader': False})
+    auth_thread = Thread(target=auth_service.run, kwargs={'debug': True, 'port': 5001, 'use_reloader': False})
+
+    app_thread.start()
+    auth_thread.start()
+
+    app_thread.join()
+    auth_thread.join()
