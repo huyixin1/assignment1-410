@@ -3,7 +3,7 @@ import hashlib
 import jwt
 from datetime import datetime, timedelta, timezone
 import secrets
-
+from functools import wraps
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
@@ -37,6 +37,23 @@ class AuthService:
         self.app = Flask(__name__)
         self.setup_routes()
 
+    def require_auth(f):
+        @wraps(f)
+        def decorated_function(self, *args, **kwargs):
+            auth_header = request.headers.get('Authorization')
+            if auth_header is None:
+                return jsonify({'error': 'Missing Authorization header'}), 401
+
+            token = auth_header.split(' ')[-1]
+            decoded_payload = self.validate_jwt(token)
+            if decoded_payload is None:
+                return jsonify({'error': 'Invalid JWT token'}), 401
+
+            print("JWT token is valid")
+            return f(self, *args, **kwargs)
+
+        return decorated_function
+    
     def setup_routes(self):
 
         """
@@ -120,6 +137,7 @@ class AuthService:
 
         return jsonify({'access_token': token}), 200
     
+    @require_auth
     def update_password(self):
 
         """
@@ -128,6 +146,8 @@ class AuthService:
         Returns:
             Tuple: A tuple containing the HTTP response and status code.
         """
+
+        print(f"Request data: {data}")
 
         data = request.get_json()
         username = data.get('username')

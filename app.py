@@ -4,7 +4,6 @@ import string
 import random
 from datetime import datetime
 import os
-from urllib.parse import urlparse
 from auth_service import AuthService
 from threading import Thread
 
@@ -69,10 +68,10 @@ class URLShortenerApp:
             print("Invalid or expired token")
             return jsonify({'error': 'Invalid or expired token'}), 401
         
-        # Check if the user is authorized to perform the action
-        if not self.is_authorized(payload):
-            print("Forbidden")
-            return jsonify({'error': 'Forbidden'}), 403
+        # # Check if the user is authorized to perform the action
+        # if not self.is_authorized(payload):
+        #     print("Forbidden")
+        #     return jsonify({'error': 'Forbidden'}), 403
 
     def setup_routes(self):
 
@@ -105,6 +104,7 @@ class URLShortenerApp:
         else:
             return jsonify({"error": "URL not found"}), 404
 
+    ### HTML code
     # def serve_index(self):
 
     #     """
