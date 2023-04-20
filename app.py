@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, redirect
 import os
-from auth_service import AuthService
+from auth import AuthService
 from threading import Thread
 from functools import wraps
 from datetime import datetime
