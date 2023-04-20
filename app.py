@@ -42,6 +42,21 @@ class URLShortenerApp:
         self.app.before_request(self.check_jwt) # add the check_jwt method to be called before each request
         self.setup_routes()
 
+    def setup_routes(self):
+
+        """
+        Set up the route handlers for the Flask application.
+        """
+
+        self.app.add_url_rule('/<string:id>', 'redirect_url', self.redirect_url, methods=['GET'])
+        self.app.add_url_rule('/', 'serve_index', self.serve_index, methods=['GET'])
+        self.app.add_url_rule('/<string:id>', 'update_url', self.update_url, methods=['PUT'])
+        self.app.add_url_rule('/<string:id>', 'delete_url', self.delete_url, methods=['DELETE'])
+        self.app.add_url_rule('/keys', 'get_all_keys', self.get_all_keys, methods=['GET'])
+        self.app.add_url_rule('/', 'create_short_url', self.create_short_url, methods=['POST'])
+        self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
+        self.app.add_url_rule('/search/<string:uri>', 'search_uri', self.search_uri, methods=['GET'])
+
     def check_jwt(self):
 
         """
@@ -63,50 +78,18 @@ class URLShortenerApp:
         if not payload:
             print("Invalid or expired token")
             return jsonify({'error': 'Invalid or expired token'}), 401
-
-        # Get the user's role
-        username = payload.get('sub')
-        user_role = self.auth_service.get_user_role(username)
-
-        # Check for the request method and permission
-        if request.method in ['PUT', 'DELETE', 'POST'] and user_role != 'admin':
-            print("Forbidden: Only admin can perform this operation")
-            return jsonify({'error': 'Forbidden: Only admin can perform this operation'}), 403
-
-    def setup_routes(self):
-
-        """
-        Set up the route handlers for the Flask application.
-        """
-
-        self.app.add_url_rule('/<string:id>', 'redirect_url', self.redirect_url, methods=['GET'])
-        self.app.add_url_rule('/', 'serve_index', self.serve_index, methods=['GET'])
-        self.app.add_url_rule('/<string:id>', 'update_url', self.update_url, methods=['PUT'])
-        self.app.add_url_rule('/<string:id>', 'delete_url', self.delete_url, methods=['DELETE'])
-        self.app.add_url_rule('/keys', 'get_all_keys', self.get_all_keys, methods=['GET'])
-        self.app.add_url_rule('/', 'create_short_url', self.create_short_url, methods=['POST'])
-        self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
-        self.app.add_url_rule('/search/<string:uri>', 'search_uri', self.search_uri, methods=['GET'])
-
-    def require_permission(permission):
-        def decorator(f):
-            @wraps(f)
-            def decorated_function(self, *args, **kwargs):
-                auth_header = request.headers.get('Authorization')
-                if auth_header is None:
-                    return jsonify({'error': 'Missing Authorization header'}), 401
-
-                token = auth_header.split(' ')[-1]
-                decoded_payload = self.auth_service.validate_jwt(token)
-                if decoded_payload is None:
-                    return jsonify({'error': 'Invalid JWT token'}), 401
-
-                if permission not in decoded_payload['permissions']:
-                    return jsonify({'error': f'Forbidden: Only admin can perform this operation'}), 403
-
-                return f(self, *args, **kwargs)
-            return decorated_function
-        return decorator
+    
+    def admin_required(f):
+        @wraps(f)
+        def decorated_function(self, *args, **kwargs):
+            auth_header = request.headers.get('Authorization')
+            token = auth_header.split(' ')[-1]
+            payload = self.auth_service.validate_jwt(token)
+            if payload.get("role") != "admin":
+                print("Admin privileges required")
+                return jsonify({'error': 'Admin privileges required'}), 403
+            return f(self, *args, **kwargs)
+        return decorated_function
 
     def redirect_url(self, id):
 
@@ -124,29 +107,7 @@ class URLShortenerApp:
         else:
             return jsonify({"error": "URL not found"}), 404
 
-    ### HTML code
-    # def serve_index(self):
-
-    #     """
-    #     Retrieve all stored URLs and their corresponding data from the url_data dictionary and generates a list of dictionaries. 
-    #     Sort the list of dictionaries by the timestamp of creation in descending order.
-    #     Returns:
-    #         response: A rendered HTML template containing the sorted list of URLs
-    #     """
-
-    #     short_urls = [{
-    #         "id": key,
-    #         "url": f"{BASE_URL}/{key}",
-    #         "created_at": self.url_data[key]["created_at"],
-    #         "original_url": self.url_data[key]["url"],
-    #         "generated_uri": key
-    #         }
-    #         for key in self.url_data
-    #     ]
-    #     short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
-    #     return render_template('index.html', short_urls=short_urls), 200
-
-    @require_permission('serve_index')
+    @admin_required
     def serve_index(self):
 
         """
@@ -246,8 +207,8 @@ class URLShortenerApp:
             return jsonify({'original_url': original_url, 'shortened_url': shortened_url, 'timestamp': timestamp}), 200
         else:
             return jsonify({'error': 'URI not found'}), 404
-
-    @require_permission('update_url')
+        
+    @admin_required
     def update_url(self, id):
 
         """
@@ -271,7 +232,7 @@ class URLShortenerApp:
         else:
             return jsonify({'error': 'Invalid URL'}), 400
 
-    @require_permission('delete_url')
+    @admin_required
     def delete_url(self, id):
 
         """
@@ -301,7 +262,7 @@ class URLShortenerApp:
         else:
             return jsonify(list(self.url_data.keys())), 200
 
-    @require_permission('create_short_url')
+    @admin_required
     def create_short_url(self):
 
         """
@@ -339,7 +300,7 @@ class URLShortenerApp:
             error_msg = f"An internal server error occurred while generating a unique identifier: {str(e)}. Function: create_short_url(). Module: url_shortener.py"
             return jsonify({'error': error_msg}), 500
 
-    @require_permission('unsupported_delete')
+    @admin_required
     def unsupported_delete(self):
 
         """
