@@ -69,9 +69,9 @@ class URLShortenerApp:
             return jsonify({'error': 'Invalid or expired token'}), 401
         
         # Check if the user is authorized to perform the action
-        if not self.is_authorized(payload):
-            print("Forbidden")
-            return jsonify({'error': 'Forbidden'}), 403
+        # if not self.is_authorized(payload):
+        #     print("Forbidden")
+        #     return jsonify({'error': 'Forbidden'}), 403
 
     def setup_routes(self):
 
