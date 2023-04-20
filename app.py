@@ -1,24 +1,13 @@
-from flask import Flask, request, jsonify, render_template, redirect
-import re
-import string
-import random
-from datetime import datetime
+from flask import Flask, request, jsonify, redirect
 import os
 from auth_service import AuthService
 from threading import Thread
 from functools import wraps
+from datetime import datetime
+from helpers import is_valid_url, generate_unique_id
 
 # Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
-
-# Set the length of the unique ID to use for shortened URLs
-URI_LENGTH = 8
-
-# Set the range of max_attempts to create a unique ID
-MAX_ATTEMPTS = 100
-
-# Set the max URL length
-INTERNET_MAX_PATH_LENGTH = 2048
 
 class URLShortenerApp:
 
@@ -128,66 +117,6 @@ class URLShortenerApp:
         short_urls = sorted(short_urls, key=lambda x: x['created_at'], reverse=True)
         
         return jsonify(short_urls), 200
-
-    def is_valid_url(self, url):
-
-        """
-        Validate the given URL using a regular expression and check for URL length and special characters.
-        Args:
-            url (str): The URL to validate.
-        Returns:
-            bool: True if the URL is valid, False otherwise.
-        """
-
-        # Check for URL length
-        if len(url) > INTERNET_MAX_PATH_LENGTH:
-            return False
-
-        regex = re.compile(
-            r'^https?://'  # http:// or https://
-            r'(?:www\.)?'  # www.
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain
-            r'localhost|'  # localhost
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or IP
-            r'(?::\d+)?'  # optional port (number that follows the domain name or IP address and)
-            r'(?:/?|[/?]\S+)$', re.IGNORECASE) # optional path after domain name
-
-        # Check for special characters not allowed in URLs
-        return False if re.search(r'[<>]', url) else bool(re.match(regex, url))
-
-    def generate_unique_id(self, uri_length=URI_LENGTH, max_attempts=MAX_ATTEMPTS):
-
-        """
-        Generate a unique identifier using a combination of ASCII letters and digits. 
-        Raise an error if the max_attempts is reached.
-        Args:
-            length (int): The length of the unique identifier.
-        Returns:
-            str: A `length`-character unique identifier.
-        """
-
-        attempts = 0
-        chars = string.ascii_letters + string.digits
-        while attempts < max_attempts:
-            unique_id = ''.join(random.choices(chars, k=URI_LENGTH))
-            if unique_id not in self.url_data:
-                return unique_id
-            attempts += 1
-        raise ValueError("Exceeded maximum number of attempts to generate a unique ID.")
-    
-    def check_collision(self, unique_id):
-
-        """
-        Check for collisions between unique IDs and raise error if duplicate is detected.
-        Args:
-            unique_id (str): The unique ID to check for collisions.
-        Returns:
-            str: An error message if there is a collision, None otherwise.
-        """
-
-        if unique_id in self.url_data:
-            return f"URL already exists or collision detected for unique ID '{unique_id}' "
-        return None
     
     def search_uri(self, uri):
 
@@ -223,7 +152,7 @@ class URLShortenerApp:
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
         url = data.get('url')
-        if url is not None and self.is_valid_url(url):
+        if url is not None and is_valid_url(url):
             if id in self.url_data:
                 self.url_data[id] = {"url": url, "created_at": self.url_data[id]["created_at"]}
                 return jsonify({'message': 'Updated'}), 200
@@ -278,7 +207,7 @@ class URLShortenerApp:
         if data is None:
             return jsonify({'error': 'Invalid JSON'}), 400
         url = data.get('url')
-        if url is None or not self.is_valid_url(url):
+        if url is None or not is_valid_url(url):
             return jsonify({'error': 'Invalid URL'}), 400
 
         if existing_id := next(
@@ -290,7 +219,7 @@ class URLShortenerApp:
             return jsonify({'error': 'URL already exists', 'short_url': short_url, 'generated_uri': generated_uri}), 409
 
         try:
-            unique_id = self.generate_unique_id(URI_LENGTH)
+            unique_id = generate_unique_id(self.url_data)
             self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             short_url = f"{BASE_URL}/{unique_id}"
             generated_uri = unique_id
