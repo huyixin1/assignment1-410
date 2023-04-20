@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, redirect
 import os
-from auth_service import AuthService
+from auth import AuthService
 from threading import Thread
 from functools import wraps
 from datetime import datetime
@@ -59,13 +59,11 @@ class URLShortenerApp:
 
         auth_header = request.headers.get('Authorization')
         if not auth_header:
-            print("Missing Authorization header")
             return jsonify({'error': 'Missing Authorization header'}), 401
 
         token = auth_header.split(' ')[-1]
         payload = self.auth_service.validate_jwt(token)
         if not payload:
-            print("Invalid or expired token")
             return jsonify({'error': 'Invalid or expired token'}), 401
     
     def admin_required(f):
@@ -75,7 +73,6 @@ class URLShortenerApp:
             token = auth_header.split(' ')[-1]
             payload = self.auth_service.validate_jwt(token)
             if payload.get("role") != "admin":
-                print("Admin privileges required")
                 return jsonify({'error': 'Admin privileges required'}), 403
             return f(self, *args, **kwargs)
         return decorated_function
