@@ -7,12 +7,6 @@ from app import URLShortenerApp
 
 class TestURLShortenerApp(unittest.TestCase):
 
-    """
-    A test suite for the URLShortenerApp class.
-
-    Each method tests a specific method or functionality of the URLShortenerApp class.
-    """
-
     def setUp(self):
 
         """
@@ -34,13 +28,14 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_create_short_url(self):
 
         """
-        Tests the successful creation of short URLs for a list of given URLs.
-        Ensures that the response status code is 201 for each request.
+        Tests if the method correctly creates short URLs for a list of specified URLs.
+        Validate if the response status code is 201 for each request.
         """
 
         headers = {"Authorization": "Bearer test_token"}
 
         for url in self.urls:
+
             data = {"url": url}
             response = self.app.post("/", headers=headers, data=json.dumps(data), content_type="application/json")
             self.assertEqual(response.status_code, 201)
@@ -48,38 +43,40 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_redirect_url(self):
 
         """
-        Tests the successful redirection of short URLs to their original URLs.
-        Ensures that the response status code is 301 for each request.
+        Tests if the method correctly redirects short URLs to their original URLs.
+        Validate if the response status code is 301 for each request.
         """
 
         headers = {"Authorization": "Bearer test_token"}
 
         for url in self.urls:
+
             data = {"url": url}
             response = self.app.post("/", headers=headers, data=json.dumps(data), content_type="application/json")
             self.assertEqual(response.status_code, 201)
+
             response_data = json.loads(response.get_data(as_text=True))
             generated_uri = response_data["generated_uri"]
-
             response = self.app.get(f"/{generated_uri}", headers=headers)
             self.assertEqual(response.status_code, 301)
 
     def test_update_url(self):
 
         """
-        Tests the successful update of the original URL associated with a short URL.
-        Ensures that the response status code is 200 for each request.
+        Tests if the method correctly updates the original URL that is associated with a short URL.
+        Validate if the response status code is 200 for each request.
         """
 
         headers = {"Authorization": "Bearer test_token"}
 
         for url in self.urls:
+
             data = {"url": url}
             response = self.app.post("/", headers=headers, data=json.dumps(data), content_type="application/json")
             self.assertEqual(response.status_code, 201)
+
             response_data = json.loads(response.get_data(as_text=True))
             generated_uri = response_data["generated_uri"]
-
             new_url = f"{url}/update"
             data = {"url": new_url}
             response = self.app.put(f"/{generated_uri}", headers=headers, data=json.dumps(data), content_type="application/json")
@@ -88,54 +85,57 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_delete_url(self):
 
         """
-        Tests the successful deletion of short URLs and their corresponding original URLs.
-        Ensures that the response status code is 204 for each request.
+        Tests if the method correctly deletes short URLs and their corresponding original URLs.
+        Validate if the response status code is 204 for each request.
         """
 
         headers = {"Authorization": "Bearer test_token"}
 
         for url in self.urls:
+
             data = {"url": url}
             response = self.app.post("/", headers=headers, data=json.dumps(data), content_type="application/json")
             self.assertEqual(response.status_code, 201)
+
             response_data = json.loads(response.get_data(as_text=True))
             generated_uri = response_data["generated_uri"]
-
             response = self.app.delete(f"/{generated_uri}", headers=headers)
             self.assertEqual(response.status_code, 204)
 
     def test_get_all_keys(self):
 
         """
-        Tests the retrieval of all short URLs in the application.
-        Ensures that the response status code is 200.
+        Tests if the method correctly retrieves all short URLs in the dictionary.
+        Validate if the response status code is 200.
         """
 
         headers = {"Authorization": "Bearer test_token"}
 
-        # First, create short URLs
+        # First, we create short URLs
         for url in self.urls:
             data = {"url": url}
             response = self.app.post("/", headers=headers, data=json.dumps(data), content_type="application/json")
             self.assertEqual(response.status_code, 201)
 
-        # Now, test get_all_keys
+        # Test get_all_keys
         response = self.app.get("/keys", headers=headers)
         self.assertEqual(response.status_code, 200)
 
     def test_search_uri(self):
 
         """
-        Tests the successful search of a short URL in the application.
-        Ensures that the response status code is 200 for each request.
+        Tests if the method correctly searches short URLs in the dictionary.
+        Validate if the response status code is 200 for each request.
         """
 
         headers = {"Authorization": "Bearer test_token"}
 
         for url in self.urls:
+
             data = {"url": url}
             response = self.app.post("/", headers=headers, data=json.dumps(data), content_type="application/json")
             self.assertEqual(response.status_code, 201)
+
             response_data = json.loads(response.get_data(as_text=True))
             generated_uri = response_data["generated_uri"]
             response = self.app.get(f"/search/{generated_uri}", headers=headers)
@@ -144,8 +144,8 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_create_short_url_invalid_url(self):
 
         """
-        Tests the behavior when attempting to create a short URL with an invalid URL.
-        Ensures that the response status code is 400.
+        Testing the functionality when trying to create a short URL with an invalid URL.
+        Check if the response status code is 400.
         """
 
         headers = {"Authorization": "Bearer test_token"}
@@ -156,8 +156,8 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_redirect_url_not_found(self):
 
         """
-        Tests the behavior when attempting to redirect a nonexistent short URL.
-        Ensures that the response status code is 404.
+        Testing the functionality when trying to redirect a nonexistent short URL.
+        Check if the response status code is 404.
         """
 
         headers = {"Authorization": "Bearer test_token"}
@@ -167,17 +167,17 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_update_url_invalid_url(self):
 
         """
-        Tests the behavior when attempting to update a short URL with an invalid URL.
-        Ensures that the response status code is 400.
+        Test the functionality when trying to update a short URL with an invalid URL.
+        Check if the response status code is 400.
         """
 
         headers = {"Authorization": "Bearer test_token"}
         data = {"url": "https://www.example.com"}
         response = self.app.post("/", headers=headers, data=json.dumps(data), content_type="application/json")
         self.assertEqual(response.status_code, 201)
+
         response_data = json.loads(response.get_data(as_text=True))
         generated_uri = response_data["generated_uri"]
-
         data = {"url": "invalid_url"}
         response = self.app.put(f"/{generated_uri}", headers=headers, data=json.dumps(data), content_type="application/json")
         self.assertEqual(response.status_code, 400)
@@ -185,8 +185,8 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_delete_url_not_found(self):
 
         """
-        Tests the behavior when attempting to delete a nonexistent short URL.
-        Ensures that the response status code is 404.
+        Testing the functionality when trying to delete a non-existent short URL.
+        Check if the response status code is 404.
         """
 
         headers = {"Authorization": "Bearer test_token"}
@@ -196,8 +196,8 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_serve_index(self):
 
         """
-        Tests the successful serving of the application's index page.
-        Ensures that the response status code is 200.
+        Testing the functionality serving of the application's index page.
+        Check if the response status code is 200.
         """
 
         headers = {"Authorization": "Bearer test_token"}
@@ -207,8 +207,8 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_unsupported_delete(self):
 
         """
-        Tests the behavior when attempting an unsupported DELETE request on the root endpoint.
-        Ensures that the response status code is 404.
+        Testing the functionality when trying an unsupported DELETE request on the root endpoint.
+        Check if the response status code is 404.
         """
 
         headers = {"Authorization": "Bearer test_token"}

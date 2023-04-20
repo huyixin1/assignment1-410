@@ -17,7 +17,7 @@ USER_DATA = {}
 class AuthService:
 
     """
-    A class representing an authentication service that provides user creation, password updates, and login functionality
+    A class that consists out of an authentication service that provides user creation, password updates, and login functionality
     through a Flask application.
 
     Attributes:

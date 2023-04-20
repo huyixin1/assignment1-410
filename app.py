@@ -12,11 +12,12 @@ BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 class URLShortenerApp:
 
     """
-    A URL shortening service implemented as a Flask application.
-    
+    A URL shortening service implemented using the Flask framework.
+
     Attributes:
         url_data (dict): A dictionary storing unique IDs and their corresponding URLs.
         app (Flask): A Flask application instance.
+        auth_service (AuthService): An instance of the AuthService class that provides authentication services.
     """
 
     def __init__(self, auth_service):
