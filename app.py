@@ -42,6 +42,29 @@ class URLShortenerApp:
         self.app.before_request(self.check_jwt) # add the check_jwt method to be called before each request
         self.setup_routes()
 
+    def check_jwt(self):
+
+        """
+        Check if the JWT token in the request's Authorization header is valid.
+        If the token is invalid or not provided, return a JSON error response.
+
+        The check_jwt method is called before each request, 
+        ensuring that the JWT token is validated and returns the required 403, "forbidden" status when necessary.
+        """
+
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            print("Missing Authorization header")
+            return jsonify({'error': 'Missing Authorization header'}), 401
+
+        token = auth_header.split(' ')[-1]
+        print(f"Token: {token}")
+        payload = self.auth_service.validate_jwt(token)
+        print(f"Payload: {payload}")
+        if not payload:
+            print("Invalid or expired token")
+            return jsonify({'error': 'Invalid or expired token'}), 401
+
     def setup_routes(self):
 
         """
@@ -295,26 +318,6 @@ class URLShortenerApp:
         """
 
         return jsonify({'error': 'Method not supported'}), 404
-    
-    def check_jwt(self):
-
-        """
-        Check if the JWT token in the request's Authorization header is valid.
-        If the token is invalid or not provided, return a JSON error response.
-        """
-
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            print("Missing Authorization header")
-            return jsonify({'error': 'Missing Authorization header'}), 401
-
-        token = auth_header.split(' ')[-1]
-        print(f"Token: {token}")
-        payload = self.auth_service.validate_jwt(token)
-        print(f"Payload: {payload}")
-        if not payload:
-            print("Invalid or expired token")
-            return jsonify({'error': 'Invalid or expired token'}), 401
 
     def run(self, *args, **kwargs):
 

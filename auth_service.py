@@ -1,15 +1,15 @@
 from flask import Flask, request, jsonify
-import os
 import hashlib
 import jwt
-from datetime import datetime, timedelta
-from datetime import timezone
-import os
+from datetime import datetime, timedelta, timezone
 import secrets
 
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
+
+# Specify hash algorithm
+HASH_ALGORITHM = 'sha256'
 
 # User Database
 USER_DATA = {}
@@ -50,26 +50,31 @@ class AuthService:
     def create_user(self):
 
         """
-        Creates a new user with the provided username and password.
+        Creates a new user with the provided username and password. 
+        When a user creates an account, the password they provide is hashed and stored in a dictionary to be later used for authentication. 
 
         Returns:
             Tuple: A tuple containing the HTTP response and status code.
         """
 
         data = request.get_json()
-        if data is None:
-            return jsonify({'error': 'Invalid JSON'}), 400
         username = data.get('username')
         password = data.get('password')
 
-        if username is None or password is None:
-            return jsonify({'error': 'Username and password are required'}), 400
+        if data is None:
+            return jsonify({'error': 'Invalid JSON'}), 400
+
+        if username is None:
+            return jsonify({'error': 'Username is required'}), 400
+        
+        if password is None:
+            return jsonify({'error': 'Password is required'}), 400
 
         if username in USER_DATA:
             return jsonify({'error': 'Username already exists'}), 409
 
         USER_DATA[username] = {
-            'password': hashlib.sha256(password.encode('utf-8')).hexdigest()
+            'password': hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest()
         }
 
         return '', 201
@@ -78,22 +83,33 @@ class AuthService:
 
         """
         Authenticates a user with the provided username and password and returns a JWT token.
+        When a user logs in, their provided password is hashed, and the resulting hash value is compared with the stored hash value for the corresponding username. 
+        If the hash values match, the user is authenticated.
 
         Returns:
             Tuple: A tuple containing the HTTP response and status code.
         """
 
         data = request.get_json()
-        if data is None:
-            return jsonify({'error': 'Invalid JSON'}), 400
         username = data.get('username')
         password = data.get('password')
 
-        if username is None or password is None:
-            return jsonify({'error': 'Username and password are required'}), 400
+        if data is None:
+            return jsonify({'error': 'Invalid JSON'}), 400
 
-        if username not in USER_DATA or USER_DATA[username]['password'] != hashlib.sha256(password.encode('utf-8')).hexdigest():
-            return jsonify({'error': 'Invalid credentials'}), 401
+        if username is None:
+            return jsonify({'error': 'Username is required'}), 400
+        if password is None:
+            return jsonify({'error': 'Password is required'}), 400
+
+        if username not in USER_DATA:
+            return jsonify({'error': 'User not found'}), 403
+
+        stored_password = USER_DATA[username]['password']
+        provided_password_hash = hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest()
+
+        if stored_password != provided_password_hash:
+            return jsonify({'error': 'Invalid credentials'}), 403
 
         # Generate JWT token
         payload = {
@@ -114,19 +130,24 @@ class AuthService:
         """
 
         data = request.get_json()
-        if data is None:
-            return jsonify({'error': 'Invalid JSON'}), 400
         username = data.get('username')
         old_password = data.get('old_password')
         new_password = data.get('new_password')
 
-        if username is None or old_password is None or new_password is None:
-            return jsonify({'error': 'Username, old password, and new password are required'}), 400
+        if data is None:
+            return jsonify({'error': 'Invalid JSON'}), 400
 
-        if username not in USER_DATA or USER_DATA[username]['password'] != hashlib.sha256(old_password.encode('utf-8')).hexdigest():
+        if username is None:
+            return jsonify({'error': 'Username is required'}), 400
+        if old_password is None:
+            return jsonify({'error': 'Old password is required'}), 400
+        if new_password is None:
+            return jsonify({'error': 'New password is required'}), 400
+
+        if username not in USER_DATA or USER_DATA[username]['password'] != hashlib.new(HASH_ALGORITHM, old_password.encode('utf-8')).hexdigest():
             return jsonify({'error': 'Invalid credentials'}), 403
 
-        USER_DATA[username]['password'] = hashlib.sha256(new_password.encode('utf-8')).hexdigest()
+        USER_DATA[username]['password'] = hashlib.new(HASH_ALGORITHM, new_password.encode('utf-8')).hexdigest()
 
         return '', 200
     
