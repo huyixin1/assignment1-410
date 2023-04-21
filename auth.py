@@ -4,6 +4,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 import secrets
 from functools import wraps
+import re
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
@@ -100,6 +101,9 @@ class AuthService:
 
         if password is None:
             return jsonify({'error': 'Password is required'}), 400
+        
+        if not self.is_password_strong(password):
+            return jsonify({'error': 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit'}), 400
 
         if role not in ['admin', 'regular']:
             return jsonify({'error': 'Invalid role'}), 400
@@ -182,10 +186,15 @@ class AuthService:
 
         if username is None:
             return jsonify({'error': 'Username is required'}), 400
+        
         if old_password is None:
             return jsonify({'error': 'Old password is required'}), 400
+        
         if new_password is None:
             return jsonify({'error': 'New password is required'}), 400
+        
+        if not self.is_password_strong(new_password):
+            return jsonify({'error': 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit'}), 400
 
         if username not in USER_DATA or USER_DATA[username]['password'] != hashlib.new(HASH_ALGORITHM, old_password.encode('utf-8')).hexdigest():
             return jsonify({'error': 'Invalid credentials'}), 403
@@ -193,6 +202,32 @@ class AuthService:
         USER_DATA[username]['password'] = hashlib.new(HASH_ALGORITHM, new_password.encode('utf-8')).hexdigest()
 
         return '', 200
+    
+    def is_password_strong(self, password):
+
+        """
+        Validates the strength of the provided password.
+
+        Args:
+            password (str): The password to be validated.
+
+        Returns:
+            bool: True if the password is strong, False otherwise.
+        """
+
+        if len(password) < 8:
+            return False
+
+        if not re.search('[a-z]', password):
+            return False
+
+        if not re.search('[A-Z]', password):
+            return False
+
+        if not re.search('[0-9]', password):
+            return False
+
+        return True
     
     def validate_jwt(self, token):
 
