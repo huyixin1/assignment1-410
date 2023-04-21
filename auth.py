@@ -90,7 +90,7 @@ class AuthService:
 
         username = data.get('username')
         password = data.get('password')
-        role = data.get('role', 'regular')
+        role = data.get('role', 'regular') # the role is 'regular' by default
 
         if username is None:
             return jsonify({'error': 'Username is required'}), 400
