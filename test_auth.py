@@ -5,6 +5,9 @@ from auth import AuthService, Flask, USER_DATA
 import hashlib
 from helpers import hash_password, is_password_strong
 
+# Specify hash algorithm
+HASH_ALGORITHM = 'sha256'
+
 class TestAuthService(unittest.TestCase):
 
     def setUp(self):

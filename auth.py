@@ -98,7 +98,7 @@ class AuthService:
         if password is None:
             return jsonify({'error': 'Password is required'}), 400
         
-        if not self.is_password_strong(password):
+        if not is_password_strong(password):
             return jsonify({'error': 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit'}), 400
 
         if role not in ['admin', 'regular']:
