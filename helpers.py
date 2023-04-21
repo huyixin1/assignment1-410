@@ -1,6 +1,8 @@
 import re
 import string
 import random
+import hashlib
+import re
 
 # Set the max URL length
 INTERNET_MAX_PATH_LENGTH = 2048
@@ -10,6 +12,9 @@ URI_LENGTH = 8
 
 # Set the range of max_attempts to create a unique ID
 MAX_ATTEMPTS = 100
+
+# Specify hash algorithm
+HASH_ALGORITHM = 'sha256'
 
 def is_valid_url(url):
 
@@ -56,3 +61,65 @@ def generate_unique_id(url_data, max_attempts=MAX_ATTEMPTS):
             return unique_id
         attempts += 1
     raise ValueError("Exceeded maximum number of attempts to generate a unique ID.")
+
+def hash_password(password):
+
+    """
+    Hashes the given password using the specified hash algorithm.
+
+    Args:
+        password (str): The password to be hashed.
+
+    Returns:
+        str: The hashed password in hexadecimal format.
+    """
+
+    return hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest()
+
+def is_password_strong(password):
+
+    """
+    Validates the strength of the provided password.
+
+    Args:
+        password (str): The password to be validated.
+
+    Returns:
+        bool: True if the password is strong, False otherwise.
+    """
+
+    if len(password) < 8:
+        return False
+
+    if not re.search('[a-z]', password):
+        return False
+
+    if not re.search('[A-Z]', password):
+        return False
+
+    if not re.search('[0-9]', password):
+        return False
+
+    return True
+
+
+def is_username_valid(username):
+
+    """
+    Check if a username satisfies to specified rules.
+    
+    Args:
+        username (str): The username to validate.
+        
+    Returns:
+        bool: True if the username is valid, False otherwise.
+    """
+    # At least 5 characters long
+    if len(username) < 5:
+        return False
+    
+    # Only alphanumeric characters and underscores
+    if not re.match(r'^[\w_]+$', username):
+        return False
+
+    return True

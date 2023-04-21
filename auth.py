@@ -1,15 +1,12 @@
 from flask import Flask, request, jsonify
-import hashlib
 import jwt
 from datetime import datetime, timedelta, timezone
 import secrets
 from functools import wraps
+from helpers import hash_password, is_password_strong, is_username_valid
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
-
-# Specify hash algorithm
-HASH_ALGORITHM = 'sha256'
 
 # User Database
 USER_DATA = {}
@@ -17,7 +14,7 @@ USER_DATA = {}
 class AuthService:
 
     """
-    A class representing an authentication service that provides user creation, password updates, and login functionality
+    A class that consists out of an authentication service that provides user creation, password updates, and login functionality
     through a Flask application.
 
     Attributes:
@@ -38,6 +35,19 @@ class AuthService:
         self.setup_routes()
 
     def require_auth(f):
+
+        """
+        A decorator function that provides authentication to the wrapped function.
+        It checks the presence of the 'Authorization' header in the incoming request, 
+        and if present, it attempts to decode and validate the JWT token in the header.
+        
+        Args:
+            f (function): The function to be wrapped with authentication.
+
+        Returns:
+            function: The decorated function that enforces authentication.
+        """
+
         @wraps(f)
         def decorated_function(self, *args, decoded_payload=None, **kwargs):
             auth_header = request.headers.get('Authorization')
@@ -80,13 +90,22 @@ class AuthService:
 
         username = data.get('username')
         password = data.get('password')
-        role = data.get('role', 'regular')
+        role = data.get('role', 'regular') # the role is 'regular' by default
 
         if username is None:
             return jsonify({'error': 'Username is required'}), 400
+        
+        if not is_username_valid(username):
+            return jsonify({'error': 'Invalid username. Must be at least 5 characters long and contain only alphanumeric characters and underscores'}), 400
 
         if password is None:
             return jsonify({'error': 'Password is required'}), 400
+        
+        if not is_password_strong(password):
+            return jsonify({'error': 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit'}), 400
+        
+        if role is None or role.strip() == '':
+            return jsonify({'error': 'Role is required'}), 400
 
         if role not in ['admin', 'regular']:
             return jsonify({'error': 'Invalid role'}), 400
@@ -95,7 +114,7 @@ class AuthService:
             return jsonify({'error': 'Username already exists'}), 409
 
         USER_DATA[username] = {
-            'password': hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest(),
+            'password': hash_password(password),
             'role': role
         }
 
@@ -133,16 +152,16 @@ class AuthService:
             return jsonify({'error': 'User not found'}), 403
 
         stored_password = USER_DATA[username]['password']
-        provided_password_hash = hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest()
+        provided_hash_password = hash_password(password)
 
-        if stored_password != provided_password_hash:
+        if stored_password != provided_hash_password:
             return jsonify({'error': 'Invalid credentials'}), 403
 
         # Generate JWT token
         payload = {
             'sub': username,
             'role': USER_DATA[username]['role'],
-            'exp': datetime.now(timezone.utc) + timedelta(days=1)
+            'exp': datetime.now(timezone.utc) + timedelta(days=1) # JWT_token expires one day from creation
         }
         token = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
 
@@ -169,15 +188,20 @@ class AuthService:
 
         if username is None:
             return jsonify({'error': 'Username is required'}), 400
+        
         if old_password is None:
             return jsonify({'error': 'Old password is required'}), 400
+        
         if new_password is None:
             return jsonify({'error': 'New password is required'}), 400
+        
+        if not is_password_strong(new_password):
+            return jsonify({'error': 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit'}), 400
 
-        if username not in USER_DATA or USER_DATA[username]['password'] != hashlib.new(HASH_ALGORITHM, old_password.encode('utf-8')).hexdigest():
+        if username not in USER_DATA or USER_DATA[username]['password'] != hash_password(old_password):
             return jsonify({'error': 'Invalid credentials'}), 403
 
-        USER_DATA[username]['password'] = hashlib.new(HASH_ALGORITHM, new_password.encode('utf-8')).hexdigest()
+        USER_DATA[username]['password'] = hash_password(new_password)
 
         return '', 200
     
