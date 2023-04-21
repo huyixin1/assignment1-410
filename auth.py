@@ -162,7 +162,7 @@ class AuthService:
         return jsonify({'access_token': token}), 200
         
     @require_auth
-    def update_password(self):
+    def update_password(self, decoded_payload):
 
         """
         Updates the password of the user with the provided username.
