@@ -1,6 +1,7 @@
 import unittest
 import string
-from helpers import is_valid_url, generate_unique_id
+from helpers import is_valid_url, generate_unique_id, hash_password, is_password_strong
+import hashlib
 
 # Set the length of the unique ID to use for shortened URLs
 URI_LENGTH = 8
@@ -10,6 +11,9 @@ MAX_ATTEMPTS = 100
 
 # Set the max URL length
 INTERNET_MAX_PATH_LENGTH = 2048
+
+# Specify hash algorithm
+HASH_ALGORITHM = 'sha256'
 
 class TestHelperFunctions(unittest.TestCase):
 
@@ -68,7 +72,6 @@ class TestHelperFunctions(unittest.TestCase):
         url_data = set()
         unique_id = generate_unique_id(url_data)
         chars = string.ascii_letters + string.digits
-        
         for char in unique_id:
             self.assertIn(char, chars, "Generated ID should only contain ASCII letters and digits.")
 
@@ -88,6 +91,46 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(sorted_urls[0]['original_url'], "https://www.example1.com")
         self.assertEqual(sorted_urls[1]['original_url'], "https://www.example3.com")
         self.assertEqual(sorted_urls[2]['original_url'], "https://www.example2.com")
+
+
+    def test_hash_password(self):
+
+        """
+        Testing if the hash_password method correctly hashes the given password using the specified hash algorithm.
+        """
+
+        password = "Str0ng_P@ssw0rd!"
+        hashed_password = hash_password(password)
+        expected_hash = hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest()
+
+        self.assertEqual(hashed_password, expected_hash, "The hashed password should match the expected hash.")
+
+    def test_is_password_strong(self):
+
+        """
+        Testing if the is_password_strong method correctly identifies strong and weak passwords.
+        """
+
+        strong_passwords = [
+            "P@$$w0rd!",
+            "Str0ng_P@ssw0rd!",
+            "S3cureP@$$123"
+        ]
+
+        weak_passwords = [
+            "password",
+            "P@ssword",
+            "pass123",
+            "p@ssword"
+        ]
+
+        # Test strong passwords
+        for password in strong_passwords:
+            self.assertTrue(is_password_strong(password), f"The password '{password}' should be identified as strong.")
+
+        # Test weak passwords
+        for password in weak_passwords:
+            self.assertFalse(is_password_strong(password), f"The password '{password}' should be identified as weak.")
 
 if __name__ == '__main__':
     unittest.main()

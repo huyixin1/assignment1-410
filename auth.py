@@ -1,16 +1,12 @@
 from flask import Flask, request, jsonify
-import hashlib
 import jwt
 from datetime import datetime, timedelta, timezone
 import secrets
 from functools import wraps
-import re
+from helpers import hash_password, is_password_strong
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
-
-# Specify hash algorithm
-HASH_ALGORITHM = 'sha256'
 
 # User Database
 USER_DATA = {}
@@ -112,7 +108,7 @@ class AuthService:
             return jsonify({'error': 'Username already exists'}), 409
 
         USER_DATA[username] = {
-            'password': hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest(),
+            'password': hash_password(password),
             'role': role
         }
 
@@ -150,9 +146,9 @@ class AuthService:
             return jsonify({'error': 'User not found'}), 403
 
         stored_password = USER_DATA[username]['password']
-        provided_password_hash = hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest()
+        provided_hash_password = hash_password(password)
 
-        if stored_password != provided_password_hash:
+        if stored_password != provided_hash_password:
             return jsonify({'error': 'Invalid credentials'}), 403
 
         # Generate JWT token
@@ -193,41 +189,15 @@ class AuthService:
         if new_password is None:
             return jsonify({'error': 'New password is required'}), 400
         
-        if not self.is_password_strong(new_password):
+        if not is_password_strong(new_password):
             return jsonify({'error': 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit'}), 400
 
-        if username not in USER_DATA or USER_DATA[username]['password'] != hashlib.new(HASH_ALGORITHM, old_password.encode('utf-8')).hexdigest():
+        if username not in USER_DATA or USER_DATA[username]['password'] != hash_password(old_password):
             return jsonify({'error': 'Invalid credentials'}), 403
 
-        USER_DATA[username]['password'] = hashlib.new(HASH_ALGORITHM, new_password.encode('utf-8')).hexdigest()
+        USER_DATA[username]['password'] = hash_password(new_password)
 
         return '', 200
-    
-    def is_password_strong(self, password):
-
-        """
-        Validates the strength of the provided password.
-
-        Args:
-            password (str): The password to be validated.
-
-        Returns:
-            bool: True if the password is strong, False otherwise.
-        """
-
-        if len(password) < 8:
-            return False
-
-        if not re.search('[a-z]', password):
-            return False
-
-        if not re.search('[A-Z]', password):
-            return False
-
-        if not re.search('[0-9]', password):
-            return False
-
-        return True
     
     def validate_jwt(self, token):
 

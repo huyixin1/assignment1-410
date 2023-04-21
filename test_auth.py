@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import MagicMock
 import json
-from auth import AuthService, Flask, JWT_SECRET, USER_DATA, HASH_ALGORITHM
+from auth import AuthService, Flask, USER_DATA
 import hashlib
+from helpers import hash_password, is_password_strong
 
 class TestAuthService(unittest.TestCase):
 
