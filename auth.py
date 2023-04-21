@@ -3,7 +3,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 import secrets
 from functools import wraps
-from helpers import hash_password, is_password_strong
+from helpers import hash_password, is_password_strong, is_username_valid
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
@@ -94,6 +94,9 @@ class AuthService:
 
         if username is None:
             return jsonify({'error': 'Username is required'}), 400
+        
+        if not is_username_valid(username):
+            return jsonify({'error': 'Invalid username. Must be at least 5 characters long and contain only alphanumeric characters and underscores'}), 400
 
         if password is None:
             return jsonify({'error': 'Password is required'}), 400

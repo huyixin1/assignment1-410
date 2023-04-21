@@ -101,3 +101,25 @@ def is_password_strong(password):
         return False
 
     return True
+
+
+def is_username_valid(username):
+
+    """
+    Check if a username satisfies to specified rules.
+    
+    Args:
+        username (str): The username to validate.
+        
+    Returns:
+        bool: True if the username is valid, False otherwise.
+    """
+    # At least 5 characters long
+    if len(username) < 5:
+        return False
+    
+    # Only alphanumeric characters and underscores
+    if not re.match(r'^[\w_]+$', username):
+        return False
+
+    return True

@@ -50,7 +50,8 @@ The URL shortener application includes a test class that covers most of the core
 * Redirection, updating, and deletion of short URLs
 * Error handling for invalid input, unsupported requests, and non-existent unique identifiers
 * Creating users
-* Login users
+* User login
+* Valid username and password
 * Updating passwords of users
 * Requirements of authorization
 

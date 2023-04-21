@@ -1,6 +1,6 @@
 import unittest
 import string
-from helpers import is_valid_url, generate_unique_id, hash_password, is_password_strong
+from helpers import is_valid_url, generate_unique_id, hash_password, is_password_strong, is_username_valid
 import hashlib
 
 # Set the length of the unique ID to use for shortened URLs
@@ -131,6 +131,36 @@ class TestHelperFunctions(unittest.TestCase):
         # Test weak passwords
         for password in weak_passwords:
             self.assertFalse(is_password_strong(password), f"The password '{password}' should be identified as weak.")
+
+    def test_is_username_valid(self):
+
+        """
+        Testing if the is_username_valid method correctly identifies valid and invalid usernames.
+        """
+
+        valid_usernames = [
+            "user_123",
+            "abcde",
+            "UserName",
+            "valid_1"
+        ]
+
+        invalid_usernames = [
+            "user",
+            "user name",
+            "user@domain.com",
+            "user!",
+            "abc",
+            "!"
+        ]
+
+        # Test valid usernames
+        for username in valid_usernames:
+            self.assertTrue(is_username_valid(username), f"The username '{username}' should be identified as valid.")
+
+        # Test invalid usernames
+        for username in invalid_usernames:
+            self.assertFalse(is_username_valid(username), f"The username '{username}' should be identified as invalid.")
 
 if __name__ == '__main__':
     unittest.main()
