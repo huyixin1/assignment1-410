@@ -103,6 +103,9 @@ class AuthService:
         
         if not is_password_strong(password):
             return jsonify({'error': 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit'}), 400
+        
+        if role is None or role.strip() == '':
+            return jsonify({'error': 'Role is required'}), 400
 
         if role not in ['admin', 'regular']:
             return jsonify({'error': 'Invalid role'}), 400
