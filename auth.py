@@ -155,7 +155,7 @@ class AuthService:
         payload = {
             'sub': username,
             'role': USER_DATA[username]['role'],
-            'exp': datetime.now(timezone.utc) + timedelta(days=1)
+            'exp': datetime.now(timezone.utc) + timedelta(days=1) # JWT_token expires one day from creation
         }
         token = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
 
