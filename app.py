@@ -262,7 +262,19 @@ class URLShortenerApp:
         self.app.run(*args, **kwargs)
 
 if __name__ == '__main__':
-    from threading import Thread
+
+    """ 
+
+    This script is run as the main module. It initializes the URLShortenerApp instance without an auth_service,
+    creates an AuthService instance with URLShortenerApp instance, and updates the auth_service attribute
+    in the URLShortenerApp instance.
+
+    Both URLShortenerApp and AuthService are started in separate threads with specific configurations.
+    The start method initiates the new threads and calls their run methods. 
+    The join method blocks the main thread until both threads complete their execution. 
+    Ensuring that the main thread will not exit until both Flask applications have finished running.
+
+    """
 
     url_shortener_app = URLShortenerApp(None)  # Initialize URLShortenerApp with None as auth_service
     auth_service = AuthService(url_shortener_app)  # Initialize AuthService with url_shortener_app instance
