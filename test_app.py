@@ -11,6 +11,7 @@ class TestURLShortenerApp(unittest.TestCase):
         """
         Initializes AuthService and URLShortenerApp objects for test cases.
         Also initializes an Flask test client instance.
+        Create list of URLs to be validated.
         """
 
         self.auth_service = AuthService(None)

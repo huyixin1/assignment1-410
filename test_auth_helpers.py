@@ -1,7 +1,7 @@
 import unittest
-from auth_helpers import hash_password, is_password_strong, is_username_valid, JWT_SECRET
+from auth_helpers import hash_password, is_password_strong, is_username_valid, JWT_SECRET, base64url_encode, base64url_decode
 import hashlib
-import secrets
+import base64
 import hmac
 
 class TestAuthHelperFunctions(unittest.TestCase):
@@ -74,6 +74,34 @@ class TestAuthHelperFunctions(unittest.TestCase):
         # Test invalid usernames
         for username in invalid_usernames:
             self.assertFalse(is_username_valid(username), f"The username '{username}' is invalid.")
+    
+    def test_base64url_encode(self):
+
+        """
+        Test if method correctly encodes data.
+        """
+
+        # Create a bytes object to encode.
+        data = b'data to test'  
+
+        # Generate expected result using urlsafe_b64encode() to encode data
+        # Remove any trailing equal signs
+        expected_result = base64.urlsafe_b64encode(data).rstrip(b'=') 
+
+        self.assertEqual(base64url_encode(data), expected_result) 
+
+    def test_base64url_decode(self):
+
+        """
+        Test if method correctly decodes data.
+        """
+
+        # Create bytes object for encoding and removing any trailing equal signs
+        data = base64.urlsafe_b64encode(b'test data').rstrip(b'=')
+
+        # Generate expected result by decoding encoded data and adding padding
+        expected_result = base64.urlsafe_b64decode(data + b'==')  
+        self.assertEqual(base64url_decode(data), expected_result)
 
 if __name__ == '__main__':
     unittest.main()

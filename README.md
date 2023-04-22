@@ -52,7 +52,13 @@ python app.py
 ```
 
 ### Testing
-The URL shortener application includes a test class that covers core functionalities. The tests are divided into two Python files: test_app.py ad test_app_helpers.py. These test suites cover, among others, the following functionalities:
+The URL shortener application includes a test class that covers core functionalities. The tests are divided into four Python files: 
+* test_app.py
+* test_app_helpers.py.
+* test_auth.py
+* test_auth_helpers.py
+
+These test suites cover, among others, the following functionalities:
 * Validation and generation of short URLs
 * Retrieval of short URLs
 * Redirection, updating, and deletion of short URLs
@@ -61,6 +67,7 @@ The URL shortener application includes a test class that covers core functionali
 * Login of users
 * Updating passwords of users
 * Requirements of authorization
+* Encoding and decoding
 
 ### Running Tests
 To initiate the tests, execute the following commands in your terminal:
