@@ -18,7 +18,7 @@ class TestAuthHelperFunctions(unittest.TestCase):
 
         self.assertEqual(hashed_password, expected_hash, "The hashed password should match the expected hash.")
 
-    def test_strong_password(self):
+    def test_is_password_strong(self):
 
         """
         Test if the is_password_strong method correctly identifies strong and weak passwords.
@@ -45,7 +45,7 @@ class TestAuthHelperFunctions(unittest.TestCase):
         for password in weak_passwords:
             self.assertFalse(is_password_strong(password), f"The password '{password}' identified as weak.")
 
-    def test_valid_username(self):
+    def test_is_username_valid(self):
 
         """
         Test if the is_username_valid method correctly identifies valid and invalid usernames.
