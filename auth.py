@@ -1,9 +1,7 @@
 from flask import Flask, request, jsonify
-import base64
-from datetime import datetime, timedelta, timezone
 import secrets
 from functools import wraps
-from auth_helpers import hash_password, is_password_strong, is_username_valid, jwt_decode, jwt_encode
+from auth_helpers import hash_password, is_password_strong, is_username_valid, jwt_decode, generate_jwt_token
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
@@ -141,16 +139,12 @@ class AuthService:
     def login(self):
 
         """
-        Authenticates a user with the provided username and password and returns a JWT token.
+        Authenticates a user with the provided username and password and return the generated a JWT token.
         When a user logs in, their provided password is hashed, and the resulting hash value is compared with the stored hash value for the corresponding username. 
         If the hash values match, the user is authenticated.
 
-        The `payload` dictionary includes a `datetime` object with an expiration time for the token that is one day in the future. 
-        The `timezone` module is used to create a `timezone.utc` object that represents the (UTC) timezone, and the `timedelta` function is used to add one day to the current time to generate the expiration time for the token. 
-        This ensures that the token expires after a certain amount of time, providing an additional layer of security to the authentication process
-
         Returns:
-            Tuple: A tuple containing the HTTP response and status code.
+            Tuple: A tuple containing the JSON response with the 'access_token' key, the corresponding JWT token as value, and the HTTP status code.
         """
 
         data = request.get_json()
@@ -176,12 +170,7 @@ class AuthService:
             return jsonify({'error': 'Invalid credentials'}), 403
 
         # Generate JWT token
-        payload = {
-            'sub': username,
-            'role': USER_DATA[username]['role'],
-            'exp': int((datetime.now(timezone.utc) + timedelta(days=1)).timestamp()) # JWT_token expires one day from creation
-        }
-        token = jwt_encode({"alg": "HS256", "typ": "JWT"}, payload, JWT_SECRET)
+        token = generate_jwt_token(username, USER_DATA[username]['role'], JWT_SECRET)
 
         return jsonify({'access_token': token}), 200
         

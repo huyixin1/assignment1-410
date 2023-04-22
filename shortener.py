@@ -4,12 +4,12 @@ from auth import AuthService
 from threading import Thread
 from functools import wraps
 from datetime import datetime
-from app_helpers import is_valid_url, generate_unique_id
+from shortener_helpers import is_valid_url, generate_unique_id
 
 # Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 
-class URLShortenerApp:
+class URLShortenerService:
 
     """
     A URL shortening service implemented using the Flask framework.
@@ -276,12 +276,12 @@ if __name__ == '__main__':
 
     """
 
-    url_shortener_app = URLShortenerApp(None)  # Initialize URLShortenerApp with None as auth_service
-    auth_service = AuthService(url_shortener_app)  # Initialize AuthService with url_shortener_app instance
-    url_shortener_app.auth_service = auth_service  # Update auth_service in url_shortener_app
+    url_shortener_service = URLShortenerService(None)  # Initialize url_shortener_service with None as auth_service
+    auth_service = AuthService(url_shortener_service)  # Initialize AuthService with url_shortener_service instance
+    url_shortener_service.auth_service = auth_service  # Update auth_service in url_shortener_service
 
     # Start both servers in separate threads
-    app_thread = Thread(target=url_shortener_app.run, kwargs={'debug': True, 'port': 5000, 'use_reloader': False})
+    app_thread = Thread(target=url_shortener_service.run, kwargs={'debug': True, 'port': 5000, 'use_reloader': False})
     auth_thread = Thread(target=auth_service.run, kwargs={'debug': True, 'port': 5001, 'use_reloader': False})
 
     app_thread.start()

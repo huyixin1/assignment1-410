@@ -2,21 +2,21 @@ import unittest
 from unittest.mock import MagicMock
 from flask import json
 from auth import AuthService
-from app import URLShortenerApp
+from shortener import URLShortenerService
 
-class TestURLShortenerApp(unittest.TestCase):
+class TestURLShortenerService(unittest.TestCase):
 
     def setUp(self):
 
         """
-        Initializes AuthService and URLShortenerApp objects for test cases.
+        Initializes AuthService and URLShortenerService objects for test cases.
         Initializes instance Flask test client.
         Create list of URLs to be validated.
         """
 
         self.auth_service = AuthService(None)
         self.auth_service.validate_jwt = MagicMock(return_value={"role": "admin"})
-        self.url_shortener_app = URLShortenerApp(self.auth_service)
+        self.url_shortener_app = URLShortenerService(self.auth_service)
         self.app = self.url_shortener_app.app.test_client()
 
         self.urls = [

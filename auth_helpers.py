@@ -5,9 +5,36 @@ import json
 import hmac
 import base64
 import secrets
+from datetime import datetime, timedelta, timezone
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
+
+def generate_jwt_token(username, role, secret_key):
+
+    """
+    
+    Generates a JWT token for a user with the given username and role, using the provided secret key.
+
+    The `payload` dictionary includes a `datetime` object with an expiration time for the token that is one day in the future. 
+    The `timezone` module is used to create a `timezone.utc` object that represents the (UTC) timezone, and the `timedelta` function is used to add one day to the current time to generate the expiration time for the token. 
+    This ensures that the token expires after a certain amount of time, providing an additional layer of security to the authentication process.
+
+    Args:
+        username (str): The username of the user.
+        role (str): The role of the user.
+        secret_key (str): The secret key used for JWT token encoding.
+
+    Returns:
+        str: A JWT token.
+
+    """
+    payload = {
+        'sub': username,
+        'role': role,
+        'exp': int((datetime.now(timezone.utc) + timedelta(days=1)).timestamp()) # JWT_token expires one day from creation
+    }
+    return jwt_encode({"alg": "HS256", "typ": "JWT"}, payload, secret_key) # return JWT_token
 
 def hash_password(password):
 
