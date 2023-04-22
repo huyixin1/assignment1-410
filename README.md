@@ -57,6 +57,10 @@ The URL shortener application includes a test class that covers core functionali
 * Retrieval of short URLs
 * Redirection, updating, and deletion of short URLs
 * Error handling for invalid input, unsupported requests, and non-existent unique identifiers
+* Creation of users with valid username and password
+* Login of users
+* Updating passwords of users
+* Requirements of authorization
 
 ### Running Tests
 To initiate the tests, execute the following commands in your terminal:
