@@ -11,7 +11,7 @@ MAX_ATTEMPTS = 100
 # Set the max URL length
 INTERNET_MAX_PATH_LENGTH = 2048
 
-class TestHelperFunctions(unittest.TestCase):
+class TestAppHelperFunctions(unittest.TestCase):
 
     def test_is_valid_url(self):
 
