@@ -12,7 +12,7 @@ JWT_SECRET = secrets.token_urlsafe(64)
 def hash_password(password):
 
     """
-    Hashes the given password using the specified hash algorithm.
+    Hashes the given password using the specified sha256 algorithm.
 
     Args:
         password (str): The password to be hashed.

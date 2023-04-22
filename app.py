@@ -76,8 +76,8 @@ class URLShortenerApp:
         Check if the JWT token in the request's Authorization header is valid.
         If the token is invalid or not provided, return a JSON error response.
 
-        The check_jwt method is called before each request, 
-        ensuring that the JWT token is validated and returns the required 401 "unauthorized" 
+        The check_jwt method is called before each request (see __init__ method), 
+        this ensures that the JWT token is validated and returns the required 401 "unauthorized" 
         or 403 "forbidden" status when necessary.
         """
 
