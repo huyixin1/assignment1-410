@@ -1,7 +1,6 @@
 import unittest
 import string
 from app_helpers import is_valid_url, generate_unique_id
-import hashlib
 
 # Set the length of the unique ID to use for shortened URLs
 URI_LENGTH = 8
