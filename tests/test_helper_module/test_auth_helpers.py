@@ -1,5 +1,5 @@
 import unittest
-from auth_helpers import hash_password, is_password_strong, is_username_valid, JWT_SECRET, base64url_encode, base64url_decode, jwt_decode, jwt_encode, generate_jwt_token
+from helper_modules.auth_helpers import hash_password, is_password_strong, is_username_valid, JWT_SECRET, base64url_encode, base64url_decode, jwt_decode, jwt_encode, generate_jwt_token
 import hashlib
 import base64
 import hmac

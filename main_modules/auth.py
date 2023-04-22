@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import secrets
 from functools import wraps
-from auth_helpers import hash_password, is_password_strong, is_username_valid, jwt_decode, generate_jwt_token
+from helper_modules.auth_helpers import hash_password, is_password_strong, is_username_valid, jwt_decode, generate_jwt_token
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)

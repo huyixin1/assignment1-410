@@ -1,6 +1,6 @@
 import unittest
 import string
-from shortener_helpers import is_valid_url, generate_unique_id
+from helper_modules.shortener_helpers import is_valid_url, generate_unique_id
 
 # Set the length of the unique ID to use for shortened URLs
 URI_LENGTH = 8

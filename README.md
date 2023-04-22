@@ -49,7 +49,7 @@ pip install -r requirements.txt
 ```
 6. Launch the Flask app:
 ```console
-python app.py
+python -m main_modules.shortener
 ```
 
 ### Testing
@@ -76,9 +76,7 @@ The auth and helper test suites cover, among others, the following functionaliti
 ### Running Tests
 To initiate the tests, execute the following commands in your terminal:
 ```console
-python -m unittest test_app.py
-python -m unittest test_auth.py
-python -m unittest test_helpers.py
+python -m unittest discover -s tests
 ```
 
 ### Limitations

@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify, redirect
 import os
-from auth import AuthService
+from main_modules.auth import AuthService
 from threading import Thread
 from functools import wraps
 from datetime import datetime
-from shortener_helpers import is_valid_url, generate_unique_id
+from helper_modules.shortener_helpers import is_valid_url, generate_unique_id
 
 # Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")

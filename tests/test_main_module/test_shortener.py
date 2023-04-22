@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
 from flask import json
-from auth import AuthService
-from shortener import URLShortenerService
+from main_modules.auth import AuthService
+from main_modules.shortener import URLShortenerService
 
 class TestURLShortenerService(unittest.TestCase):
 

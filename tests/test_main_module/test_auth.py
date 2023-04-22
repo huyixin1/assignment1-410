@@ -1,6 +1,6 @@
 import unittest
 from flask import json
-from auth import AuthService
+from main_modules.auth import AuthService
 from flask import Flask
 
 class TestAuthService(unittest.TestCase):
