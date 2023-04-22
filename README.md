@@ -13,6 +13,7 @@ The authentication service entails user creation, login, and password updates. U
 * auth.py: oversees user authentication and authorization, including managing user roles and validating JWT tokens.
 * auth_helpers.py: provides utility functions used by auth.py to handle authentication and authorization.
 
+### Features of application
 The application features the following functionalities: 
 * URL validation
 * Unique identifier generation
