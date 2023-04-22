@@ -4,14 +4,13 @@ from flask import json
 from auth import AuthService
 from app import URLShortenerApp
 
-
 class TestURLShortenerApp(unittest.TestCase):
 
     def setUp(self):
 
         """
-        Initializes the AuthService and URLShortenerApp objects required for the test cases.
-        Also initializes an instance of the Flask test client.
+        Initializes AuthService and URLShortenerApp objects for test cases.
+        Also initializes an Flask test client instance.
         """
 
         self.auth_service = AuthService(None)
@@ -20,7 +19,7 @@ class TestURLShortenerApp(unittest.TestCase):
         self.app = self.url_shortener_app.app.test_client()
 
         self.urls = [
-            "https://www.example.com",
+            "https://www.facebook.com",
             "https://www.google.com",
             "https://www.github.com",
         ]
@@ -28,8 +27,8 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_create_short_url(self):
 
         """
-        Tests if the method correctly creates short URLs for a list of specified URLs.
-        Validate if the response status code is 201 for each request.
+        Checks if method properly generates short URLs for a list of specified URLs.
+        Verify if the response status code is 201 for each request.
         """
 
         headers = {"Authorization": "Bearer test_token"}
@@ -43,7 +42,7 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_redirect_url(self):
 
         """
-        Tests if the method correctly redirects short URLs to their original URLs.
+        Checks if method accurately redirects short URLs to original URLs.
         Validate if the response status code is 301 for each request.
         """
 
@@ -63,8 +62,8 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_update_url(self):
 
         """
-        Tests if the method correctly updates the original URL that is associated with a short URL.
-        Validate if the response status code is 200 for each request.
+        Checks if method accurately updates the original URL corresponding to a short URL.
+        Verify if the response status code is 200 for each request.
         """
 
         headers = {"Authorization": "Bearer test_token"}

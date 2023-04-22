@@ -4,7 +4,7 @@ from auth import AuthService
 from threading import Thread
 from functools import wraps
 from datetime import datetime
-from helpers import is_valid_url, generate_unique_id
+from app_helpers import is_valid_url, generate_unique_id
 
 # Get the base URL from an environment variable, or use a default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
@@ -47,26 +47,6 @@ class URLShortenerApp:
         self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
         self.app.add_url_rule('/search/<string:uri>', 'search_uri', self.search_uri, methods=['GET'])
 
-    def check_jwt(self):
-
-        """
-        Check if the JWT token in the request's Authorization header is valid.
-        If the token is invalid or not provided, return a JSON error response.
-
-        The check_jwt method is called before each request, 
-        ensuring that the JWT token is validated and returns the required 401 "unauthorized" 
-        or 403 "forbidden" status when necessary.
-        """
-
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            return jsonify({'error': 'Missing Authorization header'}), 401
-
-        token = auth_header.split(' ')[-1]
-        payload = self.auth_service.validate_jwt(token)
-        if not payload:
-            return jsonify({'error': 'Invalid or expired token'}), 401
-    
     def admin_required(f):
 
         """"
@@ -89,6 +69,26 @@ class URLShortenerApp:
                 return jsonify({'error': 'Admin privileges required'}), 403
             return f(self, *args, **kwargs)
         return decorated_function
+
+    def check_jwt(self):
+
+        """
+        Check if the JWT token in the request's Authorization header is valid.
+        If the token is invalid or not provided, return a JSON error response.
+
+        The check_jwt method is called before each request, 
+        ensuring that the JWT token is validated and returns the required 401 "unauthorized" 
+        or 403 "forbidden" status when necessary.
+        """
+
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({'error': 'Missing Authorization header'}), 401
+
+        token = auth_header.split(' ')[-1]
+        payload = self.auth_service.validate_jwt(token)
+        if not payload:
+            return jsonify({'error': 'Invalid or expired token'}), 401
 
     def redirect_url(self, id):
 

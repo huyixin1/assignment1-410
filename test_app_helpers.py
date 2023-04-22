@@ -1,6 +1,6 @@
 import unittest
 import string
-from helpers import is_valid_url, generate_unique_id, hash_password, is_password_strong, is_username_valid
+from app_helpers import is_valid_url, generate_unique_id
 import hashlib
 
 # Set the length of the unique ID to use for shortened URLs
@@ -12,15 +12,12 @@ MAX_ATTEMPTS = 100
 # Set the max URL length
 INTERNET_MAX_PATH_LENGTH = 2048
 
-# Specify hash algorithm
-HASH_ALGORITHM = 'sha256'
-
 class TestHelperFunctions(unittest.TestCase):
 
     def test_is_valid_url(self):
 
         """
-        Testing if the is_valid_url method works correctly for the specified valid and invalid URLs.
+        Check if the is_valid_url method works correctly for the specified valid and invalid URLs.
         """
 
         valid_urls = [
@@ -56,7 +53,7 @@ class TestHelperFunctions(unittest.TestCase):
     def test_generate_unique_id_length(self):
 
         """
-        Testing if the method generate_unique_id correctly generates a unique ID with the specified length.
+        Test if the method generate_unique_id properly generates a unique ID with the specified length.
         """
 
         url_data = set()
@@ -78,7 +75,7 @@ class TestHelperFunctions(unittest.TestCase):
     def test_sorted_urls(self):
 
         """
-        Testing if the function within the serve_index method sorts the short URLs correctly.
+        Testing if the function within the serve_index method sorts the short URLs accurately.
         """
 
         short_urls = [
@@ -91,76 +88,6 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(sorted_urls[0]['original_url'], "https://www.example1.com")
         self.assertEqual(sorted_urls[1]['original_url'], "https://www.example3.com")
         self.assertEqual(sorted_urls[2]['original_url'], "https://www.example2.com")
-
-
-    def test_hash_password(self):
-
-        """
-        Testing if the hash_password method correctly hashes the given password using the specified hash algorithm.
-        """
-
-        password = "Str0ng_P@ssw0rd!"
-        hashed_password = hash_password(password)
-        expected_hash = hashlib.new(HASH_ALGORITHM, password.encode('utf-8')).hexdigest()
-
-        self.assertEqual(hashed_password, expected_hash, "The hashed password should match the expected hash.")
-
-    def test_is_password_strong(self):
-
-        """
-        Testing if the is_password_strong method correctly identifies strong and weak passwords.
-        """
-
-        strong_passwords = [
-            "P@$$w0rd!",
-            "Str0ng_P@ssw0rd!",
-            "S3cureP@$$123"
-        ]
-
-        weak_passwords = [
-            "password",
-            "P@ssword",
-            "pass123",
-            "p@ssword"
-        ]
-
-        # Test strong passwords
-        for password in strong_passwords:
-            self.assertTrue(is_password_strong(password), f"The password '{password}' should be identified as strong.")
-
-        # Test weak passwords
-        for password in weak_passwords:
-            self.assertFalse(is_password_strong(password), f"The password '{password}' should be identified as weak.")
-
-    def test_is_username_valid(self):
-
-        """
-        Testing if the is_username_valid method correctly identifies valid and invalid usernames.
-        """
-
-        valid_usernames = [
-            "user_123",
-            "abcde",
-            "UserName",
-            "valid_1"
-        ]
-
-        invalid_usernames = [
-            "user",
-            "user name",
-            "user@domain.com",
-            "user!",
-            "abc",
-            "!"
-        ]
-
-        # Test valid usernames
-        for username in valid_usernames:
-            self.assertTrue(is_username_valid(username), f"The username '{username}' should be identified as valid.")
-
-        # Test invalid usernames
-        for username in invalid_usernames:
-            self.assertFalse(is_username_valid(username), f"The username '{username}' should be identified as invalid.")
 
 if __name__ == '__main__':
     unittest.main()
