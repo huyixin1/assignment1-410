@@ -52,7 +52,7 @@ class TestAppHelperFunctions(unittest.TestCase):
     def test_generate_unique_id_length(self):
 
         """
-        Test if the method generate_unique_id properly generates a unique ID with the specified length.
+        Check if the method generate_unique_id properly generates a unique ID with the specified length.
         """
 
         url_data = set()
@@ -62,7 +62,7 @@ class TestAppHelperFunctions(unittest.TestCase):
     def test_generate_unique_id_characters(self):
 
         """
-        Testing if the generate_unique_id method generates a unique ID consisting out of only ASCII letters and digits.
+        Check if the generate_unique_id method generates a unique ID consisting out of only ASCII letters and digits.
         """
 
         url_data = set()
@@ -74,7 +74,7 @@ class TestAppHelperFunctions(unittest.TestCase):
     def test_sorted_urls(self):
 
         """
-        Testing if the function within the serve_index method sorts the short URLs accurately.
+        Check if the function within the serve_index method sorts the short URLs accurately.
         """
 
         short_urls = [
