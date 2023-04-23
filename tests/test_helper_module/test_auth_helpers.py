@@ -5,6 +5,9 @@ import base64
 import hmac
 from datetime import datetime, timedelta, timezone
 
+# Set expiration date JWT_token
+DAYS_EXPIRE = 1
+
 class TestAuthHelperFunctions(unittest.TestCase):
 
     def test_is_password_strong(self):
@@ -101,7 +104,7 @@ class TestAuthHelperFunctions(unittest.TestCase):
 
         # Verify that the expiration time is set correctly
         tolerance = 5 # Allow for a tolerance of 5 seconds, since there might be a slight delay between token generation and decoding
-        expected_expiration = int((datetime.now(timezone.utc) + timedelta(days=1)).timestamp())
+        expected_expiration = int((datetime.now(timezone.utc) + timedelta(days=DAYS_EXPIRE)).timestamp())
         self.assertTrue(abs(decoded_payload['exp'] - expected_expiration) <= tolerance, "The expiration time should be set one day in the future")
     
     def test_base64url_encode(self):

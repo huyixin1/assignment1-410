@@ -10,6 +10,9 @@ from datetime import datetime, timedelta, timezone
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
 
+# Set expiration date JWT_token
+DAYS_EXPIRE = 1
+
 def generate_jwt_token(username, role, secret_key):
 
     """
@@ -32,7 +35,7 @@ def generate_jwt_token(username, role, secret_key):
     payload = {
         'sub': username,
         'role': role,
-        'exp': int((datetime.now(timezone.utc) + timedelta(days=1)).timestamp()) # JWT_token expires one day from creation
+        'exp': int((datetime.now(timezone.utc) + timedelta(days=DAYS_EXPIRE)).timestamp()) # JWT_token expires X day from creation
     }
     return jwt_encode({"alg": "HS256", "typ": "JWT"}, payload, secret_key) # return JWT_token
 
