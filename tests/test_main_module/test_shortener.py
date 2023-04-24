@@ -193,17 +193,6 @@ class TestURLShortenerService(unittest.TestCase):
         response = self.app.delete("/nonexistent", headers=headers)
         self.assertEqual(response.status_code, 404)
 
-    def test_serve_index(self):
-
-        """
-        Testing the functionality serving of the application's index page.
-        Check if the response status code is 200.
-        """
-
-        headers = {"Authorization": "Bearer test_token"}
-        response = self.app.get("/", headers=headers)
-        self.assertEqual(response.status_code, 200)
-
     def test_unsupported_delete(self):
 
         """
@@ -214,6 +203,17 @@ class TestURLShortenerService(unittest.TestCase):
         headers = {"Authorization": "Bearer test_token"}
         response = self.app.delete("/", headers=headers)
         self.assertEqual(response.status_code, 404)
+
+    def test_serve_index(self):
+
+        """
+        Testing the functionality serving of the application's index page.
+        Check if the response status code is 200.
+        """
+
+        headers = {"Authorization": "Bearer test_token"}
+        response = self.app.get("/", headers=headers)
+        self.assertEqual(response.status_code, 200)
 
 if __name__ == '__main__':
     unittest.main()
