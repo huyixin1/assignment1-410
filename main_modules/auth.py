@@ -1,9 +1,7 @@
 from flask import Flask, request, jsonify
-import jwt
-from datetime import datetime, timedelta, timezone
 import secrets
 from functools import wraps
-from helpers import hash_password, is_password_strong, is_username_valid
+from helper_modules.auth_helpers import hash_password, is_password_strong, is_username_valid, jwt_decode, generate_jwt_token
 
 # Generate a random secret key to use for JWT tokens
 JWT_SECRET = secrets.token_urlsafe(64)
@@ -34,6 +32,16 @@ class AuthService:
         self.app = Flask(__name__)
         self.setup_routes()
 
+    def setup_routes(self):
+
+        """
+        Adds the authentication routes to the Flask application instance.
+        """
+
+        self.app.add_url_rule('/users', 'create_user', self.create_user, methods=['POST'])
+        self.app.add_url_rule('/users', 'update_password', self.update_password, methods=['PUT'])
+        self.app.add_url_rule('/users/login', 'login', self.login, methods=['POST'])
+
     def require_auth(f):
 
         """
@@ -63,15 +71,23 @@ class AuthService:
 
         return decorated_function
     
-    def setup_routes(self):
-
+    def validate_jwt(self, token):
+        
         """
-        Adds the authentication routes to the Flask application instance.
+        Validates a JWT token and returns the decoded payload if valid.
+
+        Args:
+            token (str): The JWT token to validate.
+
+        Returns:
+            Dict or None: The decoded JWT payload if the token is valid, None otherwise.
         """
 
-        self.app.add_url_rule('/users', 'create_user', self.create_user, methods=['POST'])
-        self.app.add_url_rule('/users', 'update_password', self.update_password, methods=['PUT'])
-        self.app.add_url_rule('/users/login', 'login', self.login, methods=['POST'])
+        payload = jwt_decode(token, JWT_SECRET)
+        if payload is None:
+            return None
+        else:
+            return payload
 
     def create_user(self):
 
@@ -123,16 +139,12 @@ class AuthService:
     def login(self):
 
         """
-        Authenticates a user with the provided username and password and returns a JWT token.
+        Authenticates a user with the provided username and password and return the generated a JWT token.
         When a user logs in, their provided password is hashed, and the resulting hash value is compared with the stored hash value for the corresponding username. 
         If the hash values match, the user is authenticated.
 
-        The `payload` dictionary includes a `datetime` object with an expiration time for the token that is one day in the future. 
-        The `timezone` module is used to create a `timezone.utc` object that represents the (UTC) timezone, and the `timedelta` function is used to add one day to the current time to generate the expiration time for the token. 
-        This ensures that the token expires after a certain amount of time, providing an additional layer of security to the authentication process
-
         Returns:
-            Tuple: A tuple containing the HTTP response and status code.
+            Tuple: A tuple containing the JSON response with the 'access_token' key, the corresponding JWT token as value, and the HTTP status code.
         """
 
         data = request.get_json()
@@ -158,12 +170,7 @@ class AuthService:
             return jsonify({'error': 'Invalid credentials'}), 403
 
         # Generate JWT token
-        payload = {
-            'sub': username,
-            'role': USER_DATA[username]['role'],
-            'exp': datetime.now(timezone.utc) + timedelta(days=1) # JWT_token expires one day from creation
-        }
-        token = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
+        token = generate_jwt_token(username, USER_DATA[username]['role'], JWT_SECRET)
 
         return jsonify({'access_token': token}), 200
         
@@ -204,24 +211,7 @@ class AuthService:
         USER_DATA[username]['password'] = hash_password(new_password)
 
         return '', 200
-    
-    def validate_jwt(self, token):
-
-        """
-        Validates a JWT token and returns the decoded payload if valid.
-
-        Args:
-            token (str): The JWT token to validate.
-
-        Returns:
-            Dict or None: The decoded JWT payload if the token is valid, None otherwise.
-        """
-
-        try:
-            return jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-        except jwt.InvalidTokenError:
-            return None
-
+        
     def run(self, *args, **kwargs):
 
         """

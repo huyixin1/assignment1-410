@@ -1,26 +1,26 @@
 import unittest
 from unittest.mock import MagicMock
 from flask import json
-from auth import AuthService
-from app import URLShortenerApp
+from main_modules.auth import AuthService
+from main_modules.shortener import URLShortenerService
 
-
-class TestURLShortenerApp(unittest.TestCase):
+class TestURLShortenerService(unittest.TestCase):
 
     def setUp(self):
 
         """
-        Initializes the AuthService and URLShortenerApp objects required for the test cases.
-        Also initializes an instance of the Flask test client.
+        Initializes AuthService and URLShortenerService objects for test cases.
+        Initializes instance Flask test client.
+        Create list of URLs to be validated.
         """
 
         self.auth_service = AuthService(None)
         self.auth_service.validate_jwt = MagicMock(return_value={"role": "admin"})
-        self.url_shortener_app = URLShortenerApp(self.auth_service)
+        self.url_shortener_app = URLShortenerService(self.auth_service)
         self.app = self.url_shortener_app.app.test_client()
 
         self.urls = [
-            "https://www.example.com",
+            "https://www.facebook.com",
             "https://www.google.com",
             "https://www.github.com",
         ]
@@ -28,8 +28,8 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_create_short_url(self):
 
         """
-        Tests if the method correctly creates short URLs for a list of specified URLs.
-        Validate if the response status code is 201 for each request.
+        Checks if method properly generates short URLs for a list of specified URLs.
+        Verify if the response status code is 201 for each request.
         """
 
         headers = {"Authorization": "Bearer test_token"}
@@ -43,7 +43,7 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_redirect_url(self):
 
         """
-        Tests if the method correctly redirects short URLs to their original URLs.
+        Checks if method accurately redirects short URLs to original URLs.
         Validate if the response status code is 301 for each request.
         """
 
@@ -63,8 +63,8 @@ class TestURLShortenerApp(unittest.TestCase):
     def test_update_url(self):
 
         """
-        Tests if the method correctly updates the original URL that is associated with a short URL.
-        Validate if the response status code is 200 for each request.
+        Checks if method accurately updates the original URL corresponding to a short URL.
+        Verify if the response status code is 200 for each request.
         """
 
         headers = {"Authorization": "Bearer test_token"}
@@ -193,17 +193,6 @@ class TestURLShortenerApp(unittest.TestCase):
         response = self.app.delete("/nonexistent", headers=headers)
         self.assertEqual(response.status_code, 404)
 
-    def test_serve_index(self):
-
-        """
-        Testing the functionality serving of the application's index page.
-        Check if the response status code is 200.
-        """
-
-        headers = {"Authorization": "Bearer test_token"}
-        response = self.app.get("/", headers=headers)
-        self.assertEqual(response.status_code, 200)
-
     def test_unsupported_delete(self):
 
         """
@@ -214,6 +203,17 @@ class TestURLShortenerApp(unittest.TestCase):
         headers = {"Authorization": "Bearer test_token"}
         response = self.app.delete("/", headers=headers)
         self.assertEqual(response.status_code, 404)
+
+    def test_serve_index(self):
+
+        """
+        Testing the functionality serving of the application's index page.
+        Check if the response status code is 200.
+        """
+
+        headers = {"Authorization": "Bearer test_token"}
+        response = self.app.get("/", headers=headers)
+        self.assertEqual(response.status_code, 200)
 
 if __name__ == '__main__':
     unittest.main()
