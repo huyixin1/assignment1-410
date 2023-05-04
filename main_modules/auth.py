@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify
 import secrets
+import os
 from functools import wraps
 from helper_modules.auth_helpers import hash_password, is_password_strong, is_username_valid, jwt_decode, generate_jwt_token
 
 # Generate a random secret key to use for JWT tokens
-JWT_SECRET = secrets.token_urlsafe(64)
+JWT_SECRET = os.environ.get("JWT_SECRET", secrets.token_urlsafe(64))
 
 # User Database
 USER_DATA = {}
@@ -222,4 +223,4 @@ class AuthService:
             **kwargs: Arbitrary keyword arguments.
         """
 
-        self.app.run(*args, **kwargs)
+        self.app.run(host='0.0.0.0', *args, **kwargs)
