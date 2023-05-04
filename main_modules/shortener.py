@@ -1,13 +1,12 @@
 from flask import Flask, request, jsonify, redirect
 import os
-from main_modules.auth import AuthService
 from threading import Thread
 from functools import wraps
 from datetime import datetime
 from helper_modules.shortener_helpers import is_valid_url, generate_unique_id
 
 # Get the base URL from an environment variable, or use a default value
-BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
+BASE_URL = os.environ.get("BASE_URL", "http://localhost:3000")
 
 class URLShortenerService:
 
@@ -259,33 +258,4 @@ class URLShortenerService:
             **kwargs: Arbitrary keyword arguments.
         """
 
-        self.app.run(*args, **kwargs)
-
-if __name__ == '__main__':
-
-    """ 
-
-    This script is run as the main module. It initializes the URLShortenerApp instance without an auth_service,
-    creates an AuthService instance with URLShortenerApp instance, and updates the auth_service attribute
-    in the URLShortenerApp instance.
-
-    Both URLShortenerApp and AuthService are started in separate threads with specific configurations.
-    The start method initiates the new threads and calls their run methods. 
-    The join method blocks the main thread until both threads complete their execution. 
-    Ensuring that the main thread will not exit until both Flask applications have finished running.
-
-    """
-
-    url_shortener_service = URLShortenerService(None)  # Initialize url_shortener_service with None as auth_service
-    auth_service = AuthService(url_shortener_service)  # Initialize AuthService with url_shortener_service instance
-    url_shortener_service.auth_service = auth_service  # Update auth_service in url_shortener_service
-
-    # Start both servers in separate threads
-    app_thread = Thread(target=url_shortener_service.run, kwargs={'debug': True, 'port': 5000, 'use_reloader': False})
-    auth_thread = Thread(target=auth_service.run, kwargs={'debug': True, 'port': 5001, 'use_reloader': False})
-
-    app_thread.start()
-    auth_thread.start()
-
-    app_thread.join()
-    auth_thread.join()
+        self.app.run(host='0.0.0.0', *args, **kwargs)

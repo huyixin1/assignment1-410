@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  url_shortener_service:
+    build: .
+    command: ["python", "main.py", "url_shortener"]
+    ports:
+      - "3000:3000"
+    environment:
+      - BASE_URL=http://localhost:3000
+      - JWT_SECRET=${JWT_SECRET}
+
+  auth_service:
+    build: .
+    command: ["python", "main.py", "auth_service"]
+    ports:
+      - "3001:3001"
+    environment:
+      - BASE_URL=http://localhost:3001
+      - JWT_SECRET=${JWT_SECRET}
