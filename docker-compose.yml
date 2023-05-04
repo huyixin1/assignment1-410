@@ -9,6 +9,8 @@ services:
     environment:
       - BASE_URL=http://localhost:3000
       - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - url_data:/app/url_data
 
   auth_service:
     build: .
@@ -18,3 +20,6 @@ services:
     environment:
       - BASE_URL=http://localhost:3001
       - JWT_SECRET=${JWT_SECRET}
+
+volumes:
+  url_data:

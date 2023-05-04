@@ -18,3 +18,4 @@ EXPOSE 3000 3001
 
 # Set the environment variable for the Flask app
 ENV FLASK_APP=main
+

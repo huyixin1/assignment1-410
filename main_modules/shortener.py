@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, redirect
 import os
-from threading import Thread
+import json
 from functools import wraps
 from datetime import datetime
 from helper_modules.shortener_helpers import is_valid_url, generate_unique_id
@@ -25,8 +25,9 @@ class URLShortenerService:
         Initialize the URLShortenerApp instance and set up the routes.
         """
 
-        self.url_data = {}
         self.auth_service = auth_service
+        self.data_file = 'url_data/url_data.json'
+        self.url_data = self._load_data()
         self.app = Flask(__name__)
         self.app.before_request(self.check_jwt) # add the check_jwt method to be called before each request
         self.setup_routes()
@@ -45,6 +46,17 @@ class URLShortenerService:
         self.app.add_url_rule('/', 'create_short_url', self.create_short_url, methods=['POST'])
         self.app.add_url_rule('/', 'unsupported_delete', self.unsupported_delete, methods=['DELETE'])
         self.app.add_url_rule('/search/<string:uri>', 'search_uri', self.search_uri, methods=['GET'])
+
+    def _load_data(self):
+        if os.path.exists(self.data_file):
+            with open(self.data_file, "r") as file:
+                return json.load(file)
+        else:
+            return {}
+        
+    def _save_data(self):
+        with open(self.data_file, "w") as file:
+            json.dump(self.url_data, file)
 
     def admin_required(f):
 
@@ -164,6 +176,7 @@ class URLShortenerService:
         if url is not None and is_valid_url(url):
             if id in self.url_data:
                 self.url_data[id] = {"url": url, "created_at": self.url_data[id]["created_at"]}
+                self._save_data()
                 return jsonify({'message': 'Updated'}), 200
             else:
                 return jsonify({'error': 'Not Found'}), 404
@@ -183,6 +196,7 @@ class URLShortenerService:
 
         if id in self.url_data:
             del self.url_data[id]
+            self._save_data()
             return '', 204
         else:
             return jsonify({'error': 'Not Found'}), 404
@@ -230,6 +244,7 @@ class URLShortenerService:
         try:
             unique_id = generate_unique_id(self.url_data)
             self.url_data[unique_id] = {"url": url, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+            self._save_data()
             short_url = f"{BASE_URL}/{unique_id}"
             generated_uri = unique_id
 
