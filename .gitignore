@@ -1,7 +1,7 @@
 # Virtual environment
 myenv
 
-# pycache
+# Pycache
 *.pyc
 
 # Environment variables
