@@ -38,9 +38,9 @@ pip install virtualenv
 ```
 3. Create and activate a virtual environment:
 ```console
-virtualenv env_name
-source env_name/bin/activate # Mac or Linux
-env_name\Scripts\activate.bat # Windows
+virtualenv myenv
+source myenv/bin/activate # Mac or Linux
+myenv\Scripts\activate.bat # Windows
 ```
 4. Install the specified Flask version using pip (assuming pip is installed):
 ```console
