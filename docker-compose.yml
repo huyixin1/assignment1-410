@@ -11,6 +11,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
     volumes:
       - url_data:/app/url_data
+      - ./url_data.json:/app/url_data.json
 
   auth_service:
     build: .

@@ -2,7 +2,6 @@ import sys
 from main_modules.auth import AuthService
 from main_modules.shortener import URLShortenerService
 
-
 # Specify port for url_shortener_service
 url_port = 3000
 
