@@ -1,14 +1,12 @@
 from flask import Flask, request, jsonify
 import secrets
 import os
+import json
 from functools import wraps
 from helper_modules.auth_helpers import hash_password, is_password_strong, is_username_valid, jwt_decode, generate_jwt_token
 
 # Get the jwt secret from environment variable, or generate for jwt token
 JWT_SECRET = os.environ.get("JWT_SECRET", secrets.token_urlsafe(64))
-
-# User Database
-USER_DATA = {}
 
 class AuthService:
 
@@ -30,6 +28,8 @@ class AuthService:
         """
 
         self.url_shortener_app = url_shortener_app
+        self.data_file = 'user_data/user_data.json'
+        self.user_data = self._load_data()
         self.app = Flask(__name__)
         self.setup_routes()
 
@@ -42,6 +42,17 @@ class AuthService:
         self.app.add_url_rule('/users', 'create_user', self.create_user, methods=['POST'])
         self.app.add_url_rule('/users', 'update_password', self.update_password, methods=['PUT'])
         self.app.add_url_rule('/users/login', 'login', self.login, methods=['POST'])
+
+    def _load_data(self):
+        if os.path.exists(self.data_file):
+            with open(self.data_file, "r") as file:
+                return json.load(file)
+        else:
+            return {}
+        
+    def _save_data(self):
+        with open(self.data_file, "w") as file:
+            json.dump(self.user_data, file)
 
     def require_auth(f):
 
@@ -127,13 +138,14 @@ class AuthService:
         if role not in ['admin', 'regular']:
             return jsonify({'error': 'Invalid role'}), 400
 
-        if username in USER_DATA:
+        if username in self.user_data:
             return jsonify({'error': 'Username already exists'}), 409
 
-        USER_DATA[username] = {
+        self.user_data[username] = {
             'password': hash_password(password),
             'role': role
         }
+        self._save_data()
 
         return '', 201
 
@@ -161,17 +173,17 @@ class AuthService:
         if password is None:
             return jsonify({'error': 'Password is required'}), 400
 
-        if username not in USER_DATA:
+        if username not in self.user_data:
             return jsonify({'error': 'User not found'}), 403
 
-        stored_password = USER_DATA[username]['password']
+        stored_password = self.user_data[username]['password']
         provided_hash_password = hash_password(password)
 
         if stored_password != provided_hash_password:
             return jsonify({'error': 'Invalid credentials'}), 403
 
         # Generate JWT token
-        token = generate_jwt_token(username, USER_DATA[username]['role'], JWT_SECRET)
+        token = generate_jwt_token(username, self.user_data[username]['role'], JWT_SECRET)
 
         return jsonify({'access_token': token}), 200
         
@@ -206,10 +218,11 @@ class AuthService:
         if not is_password_strong(new_password):
             return jsonify({'error': 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit'}), 400
 
-        if username not in USER_DATA or USER_DATA[username]['password'] != hash_password(old_password):
+        if username not in self.user_data or self.user_data[username]['password'] != hash_password(old_password):
             return jsonify({'error': 'Invalid credentials'}), 403
 
-        USER_DATA[username]['password'] = hash_password(new_password)
+        self.user_data[username]['password'] = hash_password(new_password)
+        self._save_data()
 
         return '', 200
         
