@@ -3,12 +3,13 @@ import hashlib
 import re
 import json
 import hmac
+import os
 import base64
 import secrets
 from datetime import datetime, timedelta, timezone
 
-# Generate a random secret key to use for JWT tokens
-JWT_SECRET = secrets.token_urlsafe(64)
+# Get the password secret from environment variable, or generate to hash password
+PASSWORD_SECRET = os.environ.get("PASSWORD_SECRET", secrets.token_urlsafe(64))
 
 # Set expiration date JWT_token
 DAYS_EXPIRE = 1
@@ -51,7 +52,7 @@ def hash_password(password):
         str: The hashed password in hexadecimal format.
     """
 
-    return hmac.new(JWT_SECRET.encode('utf-8'), password.encode('utf-8'), hashlib.sha256).hexdigest()
+    return hmac.new(PASSWORD_SECRET.encode('utf-8'), password.encode('utf-8'), hashlib.sha256).hexdigest()
 
 def is_password_strong(password):
 

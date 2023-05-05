@@ -5,7 +5,7 @@ from functools import wraps
 from datetime import datetime
 from helper_modules.shortener_helpers import is_valid_url, generate_unique_id
 
-# Get the base URL from an environment variable, or use a default value
+# Get the base URL from an environment variable, or use default value
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:3000")
 
 class URLShortenerService:
