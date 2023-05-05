@@ -1,36 +1,8 @@
 # Virtual environment
 myenv
-venv
+
+# pycache
 *.pyc
-__pycache__/
 
 # Environment variables
 .env
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# IDE/editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Python distribution artifacts
-dist/
-build/
-*.egg-info/
-*.egg
-
-# Logs
-*.log
-logs/
-
-# Test results
-.coverage
-.tox
-nosetests.xml
-coverage.xml
-*.cover
-.htmlcov/
