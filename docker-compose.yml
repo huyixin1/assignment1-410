@@ -1,0 +1,32 @@
+# url_data.json file is used to store data related to the URL shortener service
+# Docker volumes are used to ensure data is persistent across container reboots
+# url_data.json file and its contents are not stored within the container image itself
+# Instead, it is stored on the host machine, separate from the container
+# This helps to reduce the container image size
+
+version: '3.8'
+
+services:
+  url_shortener_service:
+    build: .
+    command: ["python", "main.py", "url_shortener"]
+    ports:
+      - "3000:3000"
+    environment:
+      - BASE_URL=http://localhost:3000
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - url_data:/app/url_data
+      - ./url_data.json:/app/url_data.json
+
+  auth_service:
+    build: .
+    command: ["python", "main.py", "auth_service"]
+    ports:
+      - "3001:3001"
+    environment:
+      - BASE_URL=http://localhost:3001
+      - JWT_SECRET=${JWT_SECRET}
+
+volumes:
+  url_data:
