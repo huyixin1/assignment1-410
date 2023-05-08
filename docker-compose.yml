@@ -8,7 +8,7 @@ services:
   url_shortener_service:
     build:
       context: .
-      dockerfile: Dockerfile.url_shortener
+      dockerfile: docker/Dockerfile.url_shortener
     command: ["python", "main.py", "url_shortener"]
     ports:
       - "3000:3000"
@@ -22,7 +22,7 @@ services:
   auth_service:
     build:
       context: .
-      dockerfile: Dockerfile.auth_service
+      dockerfile: docker/Dockerfile.auth_service
     command: ["python", "main.py", "auth_service"]
     ports:
       - "3001:3001"
