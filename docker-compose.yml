@@ -4,11 +4,11 @@
 # Instead, it is stored on the host machine, separate from the container
 # This helps to reduce the container image size
 
-version: '3.8'
-
 services:
   url_shortener_service:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.url_shortener
     command: ["python", "main.py", "url_shortener"]
     ports:
       - "3000:3000"
@@ -20,7 +20,9 @@ services:
       - ./url_data.json:/app/url_data.json
 
   auth_service:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.auth_service
     command: ["python", "main.py", "auth_service"]
     ports:
       - "3001:3001"
