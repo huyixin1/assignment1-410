@@ -20,8 +20,6 @@ services:
     volumes:
       - url_data:/app/url_data
       - ./url_data.json:/app/url_data.json
-    # deploy:
-    #   replicas: 3
 
   auth_service:
     build:
@@ -33,8 +31,6 @@ services:
     environment:
       - BASE_URL=http://localhost:3001
       - JWT_SECRET=${JWT_SECRET}
-    # deploy:
-    #   replicas: 3
 
 volumes:
   url_data:
