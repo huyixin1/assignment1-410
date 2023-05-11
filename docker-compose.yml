@@ -4,6 +4,8 @@
 # Instead, it is stored on the host machine, separate from the container
 # This helps to reduce the container image size
 
+version: '3.8'
+
 services:
   url_shortener_service:
     build:
@@ -18,6 +20,8 @@ services:
     volumes:
       - url_data:/app/url_data
       - ./url_data.json:/app/url_data.json
+    # deploy:
+    #   replicas: 3
 
   auth_service:
     build:
@@ -29,6 +33,8 @@ services:
     environment:
       - BASE_URL=http://localhost:3001
       - JWT_SECRET=${JWT_SECRET}
+    # deploy:
+    #   replicas: 3
 
 volumes:
   url_data:
