@@ -31,7 +31,7 @@ spec:
           mountPath: /app/url_data
       volumes:
       - name: url-data
-        persistentVolumeClaim:
-          claimName: url-shortener-pvc
+        configMap:
+          name: url-data
       imagePullSecrets:
       - name: my-registry-secret
