@@ -15,7 +15,7 @@ spec:
       containers:
       - name: url-shortener
         image: xandersnelder/url-shortener:latest
-        command: ["python", "main.py", "auth_service"]
+        command: ["python", "main.py", "url_shortener"]
         ports:
         - containerPort: 3000
         env:
@@ -31,7 +31,7 @@ spec:
           mountPath: /app/url_data
       volumes:
       - name: url-data
-        configMap:
-          name: url-data
+        persistentVolumeClaim:
+          claimName: url-shortener-pvc
       imagePullSecrets:
       - name: my-registry-secret
