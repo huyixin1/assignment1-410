@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: url-shortener
-        image: xandersnelder/url-shortener-image:latest
+        image: xandersnelder/url-shortener:latest
         ports:
         - containerPort: 3000
         env:
@@ -32,3 +32,5 @@ spec:
       - name: url-data
         configMap:
           name: url-data
+      imagePullSecrets:
+      - name: my-registry-secret
