@@ -77,6 +77,36 @@ To initiate the tests, execute the following commands in your terminal:
 ```console
 python -m unittest discover -s tests
 ```
+## Micro Services
+We implement the services above in kubernetes, which contains a URL shortening service and an authentication service. They are designed to run on a Kubernetes cluster.
+### Technologies
+- Docker for containerization.
+- Kubernetes for orchestration.
+
+### Installation
+
+1. Clone this repository:
+```console
+git clone https://github.com/huyixin1/assignment1-410
+```
+2. Navigate to the project directory:
+```console
+cd repo
+```
+3. Apply the Kubernetes configuration files:
+```console
+kubectl apply -f url-shortener-deployment.yaml
+kubectl apply -f auth-service-deployment.yaml
+kubectl apply -f url-shortener-service.yaml
+kubectl apply -f auth-service-service.yaml
+kubectl apply -f configmap.yaml
+```
+
+### Usage
+
+- Access the URL shortening service at `http://145.100.135.211:<shortener_port>`.
+- Access the authentication service at `http://145.100.135.211:<auth_port>`.
+
 
 ### Limitations
 The application saves data in a dictionary which may not scale effectively if the entry count grows. Dictionaries are in-memory structures that may cause performance or memory limitations. A more efficient, scalable solution would be utilizing a database, such as a relational database management system (RDBMS) or a NoSQL database.
